@@ -1,0 +1,27 @@
+<launch>
+	<arg name="pcap_file"  default=""/>
+	<arg name="server_ip" default=""/>
+	<arg name="server_port"  default="9870"/>
+	<arg name="lidar_recv_port"  default="2368"/>
+	<arg name="gps_port"  default="10110"/>
+	<arg name="start_angle"  default="0"/>
+	<arg name="laser_return_type"  default="1"/>
+	<arg name="laser_count"  default="64"/>
+	<arg name="pcldata_type"  default="0"/>
+	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/correction.csv"/>
+	<arg name="calibration_file"  default="$(find hesai_lidar)/config/calibration.yml"/>
+
+	<node pkg="hesai_lidar" name="hesai_lidar" type="hesai_lidar_node" output="screen" >
+		<param name="pcap_file" type="string" value="$(arg pcap_file)"/>
+		<param name="server_ip" type="string" value="$(arg server_ip)"/>
+		<param name="server_port"  type="int" value="$(arg server_port)"/>
+		<param name="lidar_recv_port"  type="int" value="$(arg lidar_recv_port)"/>
+		<param name="gps_port"  type="int" value="$(arg gps_port)"/>
+		<param name="start_angle"  type="double" value="$(arg start_angle)"/>
+		<param name="calibration_file" type="string" value="$(arg calibration_file)"/>
+		<param name="lidar_correction_file"  type="string" value="$(arg lidar_correction_file)"/>
+		<param name="laser_return_type"  type="int" value="$(arg laser_return_type)"/>
+		<param name="laser_count"  type="int" value="$(arg laser_count)"/>
+		<param name="pcldata_type"  type="int" value="$(arg pcldata_type)"/>
+	</node>
+</launch>
