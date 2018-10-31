@@ -33,6 +33,4 @@ There is one node of Hesai Lidar ROS
 
   ......
 
-	<param name="lidar_correction_file"  type="string" value="$(find hesai_lidar)/config/correction.csv"/> Calibration of Lidar
-
 ```
