@@ -14,7 +14,7 @@ class HesaiLidarClient
 public:
   HesaiLidarClient(ros::NodeHandle node, ros::NodeHandle nh)
   {
-    lidarPublisher = node.advertise<sensor_msgs::PointCloud2>("point_raw", 10);
+    lidarPublisher = node.advertise<sensor_msgs::PointCloud2>("points_raw", 10);
 
     string serverIp;
     int serverPort;
