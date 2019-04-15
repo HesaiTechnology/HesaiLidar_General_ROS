@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/amc-nu/HesaiLidar_Pandar64_ros.svg?branch=master)](https://travis-ci.org/amc-nu/HesaiLidar_Pandar64_ros)
+
 # Hesai Pandar40P 
 
 This repository includes the ROS Driver for the Pandar64 LiDAR sensor manufactured by Hesai Technology.
