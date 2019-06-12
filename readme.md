@@ -1,36 +1,60 @@
-## Dependency
-```
-1. ROS
-2. sudo apt install libpcap-dev libyaml-cpp-dev
-```
+[![Build Status](https://travis-ci.org/amc-nu/HesaiLidar_Pandar64_ros.svg?branch=master)](https://travis-ci.org/amc-nu/HesaiLidar_Pandar64_ros)
 
-## Build
-```
-mkdir -p rosworkspace/src ; cd rosworkspace/src
-git clone https://github.com/HesaiTechnology/HesaiLidar_Pandar64_ros.git --recursive
-cd ../
-catkin_make
-source ./devel/setup.sh
-```
+# Hesai Pandar64
 
-## Run
-### Pandar64
-```
-roslaunch hesai_lidar hesai_lidar64.launch
-```
+This repository includes the ROS Driver for the Pandar64 LiDAR sensor manufactured by Hesai Technology.
 
-There is one node of Hesai Lidar ROS
-```
-/pandar_points
-```
 
-## Parameters:
-```
-	<arg name="server_ip" default="192.168.1.201"/> lidar's ip
-	<arg name="lidar_recv_port"  default="2368"/>   lidar's port
-	<arg name="gps_port"  default="10110"/>         gps's port
-	<arg name="start_angle"  default="0"/>          lidar's start angle
+## How to Build
 
-  ......
+### Install `catkin_tools`
 
 ```
+$ sudo apt-get update
+$ sudo apt-get install python-catkin-tools
+```
+
+### Compile
+
+1. Create ROS Workspace. i.e. `rosworkspace`
+```
+$ mkdir -p rosworkspace/src
+$ cd rosworkspace/src
+```
+
+2. Clone recursively this repository.
+3. Install required dependencies with the help of `rosdep` 
+```
+$ cd ..
+$ rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO 
+```
+4. Compile
+```
+$ catkin config --install
+$ catkin build --force-cmake
+```
+
+## How to Launch
+
+1. While in the `rosworkspace` directory.
+```
+$ source install/setup.bash
+$ roslaunch hesai_lidar hesai_lidar64.launch
+```
+2. The driver will publish a PointCloud message in the topic.
+```
+/points_raw
+```
+3. Open Rviz and add display by topic.
+4. Change fixed frame to `pandar`.
+
+LiDAR default IP address is 192.168.1.201
+
+## Some of the available parameters in the Launch file
+
+|Parameter | Default Value|
+|---------|---------------|
+|lidar_recv_port |2368|
+|gps_recv_port  |10110|
+|start_angle |0|
+
