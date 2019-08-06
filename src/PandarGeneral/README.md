@@ -1,4 +1,4 @@
-# PandarGeneral
+# PandarGeneral （SDK for Pandar64）
 ## Clone
 ```
 ssh://git@code.hesaitech.com:10022/ningshang/PandarGeneral.git  --recursive
