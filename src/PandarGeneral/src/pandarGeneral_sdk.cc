@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2018 The Hesai Technology Authors. All Rights Reserved.
+ * Copyright 2019 The Hesai Technology Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class PandarGeneralSDK_Internal {
   void Stop();
 
  private:
-  apollo::drivers::hesai::PandarGeneral *pandarGeneral_;
+  PandarGeneral *pandarGeneral_;
   void *tcp_command_client_;
   boost::thread *get_calibration_thr_;
   bool enable_get_calibration_thr_;
@@ -53,7 +53,7 @@ PandarGeneralSDK_Internal::PandarGeneralSDK_Internal(
     int tz, std::string frame_id) {
   pandarGeneral_ = NULL;
 
-  pandarGeneral_ = new apollo::drivers::hesai::PandarGeneral(device_ip, lidar_port,
+  pandarGeneral_ = new PandarGeneral(device_ip, lidar_port,
             gps_port, pcl_callback, gps_callback, start_angle, tz, frame_id);
 
   tcp_command_client_ =

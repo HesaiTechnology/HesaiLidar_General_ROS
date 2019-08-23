@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2018 The Apollo Authors. All Rights Reserved.
+ * Copyright 2019 The Hesai Technology Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -196,10 +196,6 @@ typedef struct PandarGPS_s PandarGPS;
 
 #define ROTATION_MAX_UNITS (36001)
 
-namespace apollo {
-namespace drivers {
-namespace hesai {
-
 class PandarGeneral_Internal {
  public:
   /**
@@ -274,18 +270,16 @@ class PandarGeneral_Internal {
   float General_elev_angle_map_[HS_LIDAR_L64_UNIT_NUM];
   float General_horizatal_azimuth_offset_map_[HS_LIDAR_L64_UNIT_NUM];
 
-  float block64Offset_[HS_LIDAR_L64_UNIT_NUM];
+  float block64OffsetSingle_[HS_LIDAR_L64_UNIT_NUM];
+  float block64OffsetDual_[HS_LIDAR_L64_UNIT_NUM];
   float laser64Offset_[HS_LIDAR_L64_UNIT_NUM];
 
-  float block40Offset_[LASER_COUNT];
+  float block40OffsetSingle_[LASER_COUNT];
+  float block40OffsetDual_[LASER_COUNT];
   float laser40Offset_[LASER_COUNT];
 
   int tz_second_;
   std::string frame_id_;
 };
-
-}  // namespace hesai
-}  // namespace drivers
-}  // namespace apollo
 
 #endif  // SRC_PANDARGENERAL_INTERNAL_H_

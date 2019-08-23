@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2018 The Apollo Authors. All Rights Reserved.
+ * Copyright 2018 The Hesai Technology Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,6 @@
 
 #include <pcl/point_types.h>
 
-namespace apollo {
-namespace drivers {
-namespace hesai {
-
 struct PointXYZIT {
   PCL_ADD_POINT4D
   uint8_t intensity;
@@ -31,16 +27,12 @@ struct PointXYZIT {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW  // make sure our new allocators are aligned
 } EIGEN_ALIGN16;
 
-}  // namespace hesai
-}  // namespace drivers
-}  // namespace apollo
-
 POINT_CLOUD_REGISTER_POINT_STRUCT(
-    apollo::drivers::hesai::PointXYZIT,
+    PointXYZIT,
     (float, x, x)(float, y, y)(float, z, z)(uint8_t, intensity, intensity)(
         double, timestamp, timestamp)(uint16_t, ring, ring))
 
-typedef apollo::drivers::hesai::PointXYZIT PPoint;
+typedef PointXYZIT PPoint;
 typedef pcl::PointCloud<PPoint> PPointCloud;
 
 #endif  // INCLUDE_POINT_TYPES_H_

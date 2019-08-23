@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2018 The Apollo Authors. All Rights Reserved.
+ * Copyright 2019 The Hesai Technology Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,6 @@
 #include <unistd.h>
 #include <string>
 
-namespace apollo {
-namespace drivers {
-namespace hesai {
-
 #define ETHERNET_MTU (1500)
 
 typedef struct PandarPacket_s {
@@ -46,9 +42,5 @@ class Input {
   int socketForGPS;
   int socketNumber;
 };
-
-}  // namespace hesai
-}  // namespace drivers
-}  // namespace apollo
 
 #endif  // SRC_INPUT_H_

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2018 The Apollo Authors. All Rights Reserved.
+ * Copyright 2019 The Hesai Technology Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,6 @@
 
 #include "src/input.h"
 #include "src/pandarGeneral_internal.h"
-
-namespace apollo {
-namespace drivers {
-namespace hesai {
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -98,133 +94,150 @@ PandarGeneral_Internal::PandarGeneral_Internal(
 
   //laser40
   // init the block time offset, us
-  block40Offset_[9] = 55.1f * 0.0 ;
-  block40Offset_[8] = 55.1f * 1.0 ;
-  block40Offset_[7] = 55.1f * 2.0 ;
-  block40Offset_[6] = 55.1f * 3.0 ;
-  block40Offset_[5] = 55.1f * 4.0 ;
-  block40Offset_[4] = 55.1f * 5.0 ;
-  block40Offset_[3] = 55.1f * 6.0 ;
-  block40Offset_[2] = 55.1f * 7.0 ;
-  block40Offset_[1] = 55.1f * 8.0 ;
-  block40Offset_[0] = 55.1f * 9.0 ;
+  block40OffsetSingle_[9] = 55.56f * 0.0f + 28.58f;
+  block40OffsetSingle_[8] = 55.56f * 1.0f + 28.58f;
+  block40OffsetSingle_[7] = 55.56f * 2.0f + 28.58f;
+  block40OffsetSingle_[6] = 55.56f * 3.0f + 28.58f;
+  block40OffsetSingle_[5] = 55.56f * 4.0f + 28.58f;
+  block40OffsetSingle_[4] = 55.56f * 5.0f + 28.58f;
+  block40OffsetSingle_[3] = 55.56f * 6.0f + 28.58f;
+  block40OffsetSingle_[2] = 55.56f * 7.0f + 28.58f;
+  block40OffsetSingle_[1] = 55.56f * 8.0f + 28.58f;
+  block40OffsetSingle_[0] = 55.56f * 9.0f + 28.58f;
+
+  block40OffsetDual_[9] = 55.56f * 0.0f + 28.58f;
+  block40OffsetDual_[8] = 55.56f * 0.0f + 28.58f;
+  block40OffsetDual_[7] = 55.56f * 1.0f + 28.58f;
+  block40OffsetDual_[6] = 55.56f * 1.0f + 28.58f;
+  block40OffsetDual_[5] = 55.56f * 2.0f + 28.58f;
+  block40OffsetDual_[4] = 55.56f * 2.0f + 28.58f;
+  block40OffsetDual_[3] = 55.56f * 3.0f + 28.58f;
+  block40OffsetDual_[2] = 55.56f * 3.0f + 28.58f;
+  block40OffsetDual_[1] = 55.56f * 4.0f + 28.58f;
+  block40OffsetDual_[0] = 55.56f * 4.0f + 28.58f;
 
   // init the laser shot time offset, us
-  laser40Offset_[3] = 0.93f * 1.0f;
-  laser40Offset_[35] = 0.93f * 2.0f;
-  laser40Offset_[39] = 0.93f * 3.0f;
-  laser40Offset_[23] = 0.93f * 3.0f + 1.6f * 1.0f;
-  laser40Offset_[16] = 0.93f * 3.0f + 1.6f * 2.0f;
-  laser40Offset_[27] = 0.93f * 4.0f + 1.6f * 2.0f;
-  laser40Offset_[11] = 0.93f * 4.0f + 1.6f * 3.0f;
-  laser40Offset_[31] = 0.93f * 5.0f + 1.6f * 3.0f;
-  laser40Offset_[28] = 0.93f * 6.0f + 1.6f * 3.0f;
-  laser40Offset_[15] = 0.93f * 6.0f + 1.6f * 4.0f;
-  laser40Offset_[2] = 0.93f * 7.0f + 1.6f * 4.0f;
-  laser40Offset_[34] = 0.93f * 8.0f + 1.6f * 4.0f;
-  laser40Offset_[38] = 0.93f * 9.0f + 1.6f * 4.0f;
-  laser40Offset_[20] = 0.93f * 9.0f + 1.6f * 5.0f;
-  laser40Offset_[13] = 0.93f * 9.0f + 1.6f * 6.0f;
-  laser40Offset_[24] = 0.93f * 9.0f + 1.6f * 7.0f;
-  laser40Offset_[8] = 0.93f * 9.0f + 1.6f * 8.0f;
-  laser40Offset_[30] = 0.93f * 10.0f + 1.6f * 8.0f;
-  laser40Offset_[25] = 0.93f * 11.0f + 1.6f * 8.0f;
-  laser40Offset_[12] = 0.93f * 11.0f + 1.6f * 9.0f;
-  laser40Offset_[1] = 0.93f * 12.0f + 1.6f * 9.0f;
-  laser40Offset_[33] = 0.93f * 13.0f + 1.6f * 9.0f;
-  laser40Offset_[37] = 0.93f * 14.0f + 1.6f * 9.0f;
-  laser40Offset_[17] = 0.93f * 14.0f + 1.6f * 10.0f;
-  laser40Offset_[10] = 0.93f * 14.0f + 1.6f * 11.0f;
-  laser40Offset_[21] = 0.93f * 14.0f + 1.6f * 12.0f;
-  laser40Offset_[5] = 0.93f * 14.0f + 1.6f * 13.0f;
-  laser40Offset_[29] = 0.93f * 15.0f + 1.6f * 13.0f;
-  laser40Offset_[22] = 0.93f * 15.0f + 1.6f * 14.0f;
-  laser40Offset_[9] = 0.93f * 15.0f + 1.6f * 15.0f;
-  laser40Offset_[0] = 0.93f * 16.0f + 1.6f * 15.0f;
-  laser40Offset_[32] = 0.93f * 17.0f + 1.6f * 15.0f;
-  laser40Offset_[36] = 0.93f * 18.0f + 1.6f * 15.0f;
-  laser40Offset_[14] = 0.93f * 18.0f + 1.6f * 16.0f;
-  laser40Offset_[7] = 0.93f * 18.0f + 1.6f * 17.0f;
-  laser40Offset_[18] = 0.93f * 18.0f + 1.6f * 18.0f;
-  laser40Offset_[4] = 0.93f * 19.0f + 1.6f * 18.0f;
-  laser40Offset_[26] = 0.93f * 20.0f + 1.6f * 18.0f;
-  laser40Offset_[19] = 0.93f * 20.0f + 1.6f * 19.0f;
-  laser40Offset_[6] = 0.93f * 20.0f + 1.6f * 20.0f;
+  laser40Offset_[3] = 3.62f;
+  laser40Offset_[39] = 3.62f;
+  laser40Offset_[35] = 4.92f;
+  laser40Offset_[27] = 6.23f;
+  laser40Offset_[11] = 8.19f;
+  laser40Offset_[15] = 8.19f;
+  laser40Offset_[31] = 9.5f;
+  laser40Offset_[23] = 11.47f;
+  laser40Offset_[28] = 12.77f;
+  laser40Offset_[16] = 14.74f;
+  laser40Offset_[2] = 16.04f;
+  laser40Offset_[38] = 16.04f;
+  laser40Offset_[34] = 17.35f;
+  laser40Offset_[24] = 18.65f;
+  laser40Offset_[8] = 20.62f;
+  laser40Offset_[12] = 20.62f;
+  laser40Offset_[30] = 21.92f;
+  laser40Offset_[20] = 23.89f;
+  laser40Offset_[25] = 25.19f;
+  laser40Offset_[13] = 27.16f;
+  laser40Offset_[1] = 28.47f;
+  laser40Offset_[37] = 28.47f;
+  laser40Offset_[33] = 29.77f;
+  laser40Offset_[5] = 31.74f;
+  laser40Offset_[21] = 31.7447f;
+  laser40Offset_[9] = 33.71f;
+  laser40Offset_[29] = 35.01f;
+  laser40Offset_[17] = 36.98f;
+  laser40Offset_[22] = 38.95f;
+  laser40Offset_[10] = 40.91f;
+  laser40Offset_[0] = 42.22f;
+  laser40Offset_[36] = 42.22f;
+  laser40Offset_[32] = 43.52f;
+  laser40Offset_[4] = 45.49f;
+  laser40Offset_[18] = 45.49f;
+  laser40Offset_[6] = 47.46f;
+  laser40Offset_[26] = 48.76f;
+  laser40Offset_[14] = 50.73f;
+  laser40Offset_[19] = 52.7f;
+  laser40Offset_[9] = 54.67f;
 
   //laser64 init the laser shot time offset, us
   // init the block time offset, us
+  block64OffsetSingle_[5] = 55.56f * 0.0f + 42.58f;
+  block64OffsetSingle_[4] = 55.56f * 1.0f + 42.58f;
+  block64OffsetSingle_[3] = 55.56f * 2.0f + 42.58f;
+  block64OffsetSingle_[2] = 55.56f * 3.0f + 42.58f;
+  block64OffsetSingle_[1] = 55.56f * 4.0f + 42.58f;
+  block64OffsetSingle_[0] = 55.56f * 5.0f + 42.58f;
 
-  block64Offset_[5] = 55.56f * 0.0;
-  block64Offset_[4] = 55.56f * 1.0 ;
-  block64Offset_[3] = 55.56f * 2.0 ;
-  block64Offset_[2] = 55.56f * 3.0 ;
-  block64Offset_[1] = 55.56f * 4.0 ;
-  block64Offset_[0] = 55.56f * 5.0 ;
+  block64OffsetDual_[5] = 55.56f * 0.0f + 42.58f;
+  block64OffsetDual_[4] = 55.56f * 0.0f + 42.58f;
+  block64OffsetDual_[3] = 55.56f * 1.0f + 42.58f;
+  block64OffsetDual_[2] = 55.56f * 1.0f + 42.58f;
+  block64OffsetDual_[1] = 55.56f * 2.0f + 42.58f;
+  block64OffsetDual_[0] = 55.56f * 2.0f + 42.58f;
 
-  laser64Offset_ [11]= 112.0f * 0.008f;//6
-  laser64Offset_ [39]= 112.0f * 0.008f;//B5
-  laser64Offset_ [17]= 358.0f * 0.008f;//7
-  laser64Offset_ [37]= 358.0f * 0.008f;//B21 
-  laser64Offset_ [10]= 604.0f * 0.008f;//8
-  laser64Offset_ [25]= 604.0f * 0.008f;//B19
-  laser64Offset_ [16]= 850.0f * 0.008f;//9
-  laser64Offset_ [31]= 850.0f * 0.008f;//B20
-  laser64Offset_ [22]= 1096.0f * 0.008f;//10
-  laser64Offset_ [7]= 1096.0f * 0.008f;//B16
-  laser64Offset_ [28]= 1342.0f * 0.008f;//11
-  laser64Offset_ [13]= 1342.0f * 0.008f;//B17
-  laser64Offset_ [34]= 1588.0f * 0.008f;//12
-  laser64Offset_ [19]= 1588.0f * 0.008f;//B18
-  laser64Offset_ [12]= 1834.0f * 0.008f;//17
-  laser64Offset_ [27]= 1834.0f * 0.008f;//B3
-  laser64Offset_ [18]= 2080.0f * 0.008f;//18
-  laser64Offset_ [33]= 2080.0f * 0.008f;//B4
-  laser64Offset_ [24]= 2326.0f * 0.008f;//19
-  laser64Offset_ [9]= 2326.0f * 0.008f;//B0
-  laser64Offset_ [30]= 2572.0f * 0.008f;//20
-  laser64Offset_ [15]= 2572.0f * 0.008f;//B1
-  laser64Offset_ [36]= 2818.0f * 0.008f;//21
-  laser64Offset_ [21]= 2818.0f * 0.008f;//B2
-  laser64Offset_ [14]= 3064.0f * 0.008f;//25
-  laser64Offset_ [29]= 3064.0f * 0.008f;//B9
-  laser64Offset_ [20]= 3310.0f * 0.008f;//26
-  laser64Offset_ [35]= 3310.0f * 0.008f;//B10
-  laser64Offset_ [26]= 3556.0f * 0.008f;//27
-  laser64Offset_ [41]= 3556.0f * 0.008f;//B11
-  laser64Offset_ [32]= 3802.0f * 0.008f;//28
-  laser64Offset_ [23]= 3802.0f * 0.008f;//B8
-  laser64Offset_ [0]= 4048.0f * 0.008f;//0
-  laser64Offset_ [43]= 4048.0f * 0.008f;//B22
-  laser64Offset_ [1]= 4211.0f * 0.008f;//1
-  laser64Offset_ [45]= 4211.0f * 0.008f;//B6
-  laser64Offset_ [2]= 4374.0f * 0.008f;//2
-  laser64Offset_ [51]= 4374.0f * 0.008f;//B7
-  laser64Offset_ [3]= 4537.0f * 0.008f;//3
-  laser64Offset_ [49]= 4537.0f * 0.008f;//B23
-  laser64Offset_ [4]= 4700.0f * 0.008f ;//4
-  laser64Offset_ [47]= 4700.0f * 0.008f;//B12
-  laser64Offset_ [5]= 4863.0f * 0.008f;//5
-  laser64Offset_ [53]= 4863.0f * 0.008f;//B13
-  laser64Offset_ [40]= 5026.0f * 0.008f;//13
-  laser64Offset_ [57]= 5026.0f * 0.008f;//B25
-  laser64Offset_ [46]= 5189.0f * 0.008f;//14
-  laser64Offset_ [61]= 5189.0f * 0.008f;//B29
-  laser64Offset_ [52]= 5352.0f * 0.008f;//15
-  laser64Offset_ [63]= 5352.0f * 0.008f;//B31
-  laser64Offset_ [8]= 5515.0f * 0.008f;//16
-  laser64Offset_ [55]= 5515.0f * 0.008f;//B15
-  laser64Offset_ [42]= 5678.0f * 0.008f;//22
-  laser64Offset_ [58]= 5678.0f * 0.008f;//B26
-  laser64Offset_ [48]= 5841.0f * 0.008f;//23
-  laser64Offset_ [62]= 5841.0f * 0.008f;//B30
-  laser64Offset_ [8]= 6004.0f * 0.008f;//24
-  laser64Offset_ [54]= 6004.0f * 0.008f;//B14
-  laser64Offset_ [38]= 6167.0f * 0.008f;//29
-  laser64Offset_ [56]= 6167.0f * 0.008f;//B24
-  laser64Offset_ [44]= 6330.0f * 0.008f;//30
-  laser64Offset_ [59]= 6330.0f * 0.008f;//B27
-  laser64Offset_ [50]= 6493.0f * 0.008f;//31
-  laser64Offset_ [60]= 6493.0f * 0.008f;//B28
+  laser64Offset_[50] = 1.304f * 0.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[60] = 1.304f * 0.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[44] = 1.304f * 1.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[59] = 1.304f * 1.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[38] = 1.304f * 2.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[56] = 1.304f * 2.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[8]  = 1.304f * 3.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[54] = 1.304f * 3.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[48] = 1.304f * 4.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[62] = 1.304f * 4.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[42] = 1.304f * 5.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[58] = 1.304f * 5.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[6]  = 1.304f * 6.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[55] = 1.304f * 6.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[52] = 1.304f * 7.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[63] = 1.304f * 7.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[46] = 1.304f * 8.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[61] = 1.304f * 8.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[40] = 1.304f * 9.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[57] = 1.304f * 9.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[5]  = 1.304f * 10.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[53] = 1.304f * 10.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[4]  = 1.304f * 11.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[47] = 1.304f * 11.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[3]  = 1.304f * 12.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[49] = 1.304f * 12.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[2]  = 1.304f * 13.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[51] = 1.304f * 13.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[1]  = 1.304f * 14.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[45] = 1.304f * 14.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[0]  = 1.304f * 15.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[43] = 1.304f * 15.0f + 1.968f * 0.0f + 3.62f;
+  laser64Offset_[23] = 1.304f * 15.0f + 1.968f * 1.0f + 3.62f;
+  laser64Offset_[32] = 1.304f * 15.0f + 1.968f * 1.0f + 3.62f;
+  laser64Offset_[26] = 1.304f * 15.0f + 1.968f * 2.0f + 3.62f;
+  laser64Offset_[41] = 1.304f * 15.0f + 1.968f * 2.0f + 3.62f;
+  laser64Offset_[20] = 1.304f * 15.0f + 1.968f * 3.0f + 3.62f;
+  laser64Offset_[35] = 1.304f * 15.0f + 1.968f * 3.0f + 3.62f;
+  laser64Offset_[14] = 1.304f * 15.0f + 1.968f * 4.0f + 3.62f;
+  laser64Offset_[29] = 1.304f * 15.0f + 1.968f * 4.0f + 3.62f;
+  laser64Offset_[21] = 1.304f * 15.0f + 1.968f * 5.0f + 3.62f;
+  laser64Offset_[36] = 1.304f * 15.0f + 1.968f * 5.0f + 3.62f;
+  laser64Offset_[15] = 1.304f * 15.0f + 1.968f * 6.0f + 3.62f;
+  laser64Offset_[30] = 1.304f * 15.0f + 1.968f * 6.0f + 3.62f;
+  laser64Offset_[9]  = 1.304f * 15.0f + 1.968f * 7.0f + 3.62f;
+  laser64Offset_[24] = 1.304f * 15.0f + 1.968f * 7.0f + 3.62f;
+  laser64Offset_[18] = 1.304f * 15.0f + 1.968f * 8.0f + 3.62f;
+  laser64Offset_[33] = 1.304f * 15.0f + 1.968f * 8.0f + 3.62f;
+  laser64Offset_[12] = 1.304f * 15.0f + 1.968f * 9.0f + 3.62f;
+  laser64Offset_[27] = 1.304f * 15.0f + 1.968f * 9.0f + 3.62f;
+  laser64Offset_[19] = 1.304f * 15.0f + 1.968f * 10.0f + 3.62f;
+  laser64Offset_[34] = 1.304f * 15.0f + 1.968f * 10.0f + 3.62f;
+  laser64Offset_[13] = 1.304f * 15.0f + 1.968f * 11.0f + 3.62f;
+  laser64Offset_[28] = 1.304f * 15.0f + 1.968f * 11.0f + 3.62f;
+  laser64Offset_[7]  = 1.304f * 15.0f + 1.968f * 12.0f + 3.62f;
+  laser64Offset_[22] = 1.304f * 15.0f + 1.968f * 12.0f + 3.62f;
+  laser64Offset_[16] = 1.304f * 15.0f + 1.968f * 13.0f + 3.62f;
+  laser64Offset_[31] = 1.304f * 15.0f + 1.968f * 13.0f + 3.62f;
+  laser64Offset_[10] = 1.304f * 15.0f + 1.968f * 14.0f + 3.62f;
+  laser64Offset_[25] = 1.304f * 15.0f + 1.968f * 14.0f + 3.62f;
+  laser64Offset_[17] = 1.304f * 15.0f + 1.968f * 15.0f + 3.62f;
+  laser64Offset_[37] = 1.304f * 15.0f + 1.968f * 15.0f + 3.62f;
+  laser64Offset_[11] = 1.304f * 15.0f + 1.968f * 16.0f + 3.62f;
+  laser64Offset_[39] = 1.304f * 15.0f + 1.968f * 16.0f + 3.62f;
 
   for (int i = 0; i < LASER_COUNT; ++i) {
     // for all the laser offset 
@@ -722,12 +735,12 @@ void PandarGeneral_Internal::CalcPointXYZIT(Pandar40PPacket *pkt, int blockid,
     if (pkt->echo == 0x39) {
       // dual return, block 0&1 (2&3 , 4*5 ...)'s timestamp is the same.
       point.timestamp = \
-          point.timestamp - (static_cast<double>(block40Offset_[blockid / 2] + \
+          point.timestamp - (static_cast<double>(block40OffsetDual_[blockid] + \
           laser40Offset_[i]) / 1000000.0f);
     } else {
       point.timestamp =
           point.timestamp -
-          (static_cast<double>(block40Offset_[blockid] + laser40Offset_[i]) /
+          (static_cast<double>(block40OffsetSingle_[blockid] + laser40Offset_[i]) /
            1000000.0f);
     }
 
@@ -787,13 +800,13 @@ void PandarGeneral_Internal::CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blo
     if (pkt->echo == 0x39) {
       // dual return, block 0&1 (2&3 , 4*5 ...)'s timestamp is the same.
       point.timestamp =
-          point.timestamp - (static_cast<double>(block64Offset_[blockid / 2] +
+          point.timestamp - (static_cast<double>(block64OffsetDual_[blockid] +
                                                  laser64Offset_[i]) /
                              1000000.0f);
     } else {
       point.timestamp =
           point.timestamp -
-          (static_cast<double>(block64Offset_[blockid] + laser64Offset_[i]) /
+          (static_cast<double>(block64OffsetSingle_[blockid] + laser64Offset_[i]) /
            1000000.0f);
     }
 
@@ -802,7 +815,3 @@ void PandarGeneral_Internal::CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blo
     cld->push_back(point);
   }
 }
-
-}  // namespace hesai
-}  // namespace drivers
-}  // namespace apollo

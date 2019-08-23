@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2018 The Apollo Authors. All Rights Reserved.
+ * Copyright 2019 The Hesai Technology Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,6 @@
 #include <boost/function.hpp>
 
 #include "pandarGeneral/point_types.h"
-
-namespace apollo {
-namespace drivers {
-namespace hesai {
 
 class PandarGeneral_Internal;
 
@@ -82,9 +78,5 @@ class PandarGeneral {
  private:
   PandarGeneral_Internal *internal_;
 };
-
-}  // namespace hesai
-}  // namespace drivers
-}  // namespace apollo
 
 #endif  // INCLUDE_PANDARGENERAL_H_

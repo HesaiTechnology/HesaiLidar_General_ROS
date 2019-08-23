@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2018 The Apollo Authors. All Rights Reserved.
+ * Copyright 2019 The Hesai Technology Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 #include "pandarGeneral/pandarGeneral.h"
 #include "src/pandarGeneral_internal.h"
-
-namespace apollo {
-namespace drivers {
-namespace hesai {
 
 /**
  * @brief Constructor
@@ -70,7 +66,3 @@ int PandarGeneral::Start() { return internal_->Start(); }
  * @brief Stop SDK.
  */
 void PandarGeneral::Stop() { internal_->Stop(); }
-
-}  // namespace hesai
-}  // namespace drivers
-}  // namespace apollo
