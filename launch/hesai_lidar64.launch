@@ -8,6 +8,7 @@
 	<arg name="laser_return_type"  default="1"/>
 	<arg name="laser_count"  default="64"/>
 	<arg name="pcldata_type"  default="0"/>
+	<arg name="lidar_type" default=""/>
 	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/correction.csv"/>
 	<arg name="calibration_file"  default="$(find hesai_lidar)/config/calibration.yml"/>
 
@@ -23,5 +24,6 @@
 		<param name="laser_return_type"  type="int" value="$(arg laser_return_type)"/>
 		<param name="laser_count"  type="int" value="$(arg laser_count)"/>
 		<param name="pcldata_type"  type="int" value="$(arg pcldata_type)"/>
+		<param name="lidar_type"  type="string" value="$(arg lidar_type"/>
 	</node>
 </launch>

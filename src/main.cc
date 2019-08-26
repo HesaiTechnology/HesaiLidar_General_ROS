@@ -27,7 +27,7 @@ public:
     int laserCount;
     int pclDataType;
     string pcapFile;
-    image_transport::ImageTransport it(nh);
+    string lidarType;
 
     nh.getParam("pcap_file", pcapFile);
     nh.getParam("server_ip", serverIp);
@@ -40,6 +40,12 @@ public:
     nh.getParam("laser_return_type", laserReturnType);
     nh.getParam("laser_count", laserCount);
     nh.getParam("pcldata_type", pclDataType);
+    nh.getParam("lidar_type", lidarType);
+
+    if ((strcmp(lidarType.c_str(), "Pandar20A") != 0) && \
+        (strcmp(lidarType.c_str(), "Pandar20B") != 0)) {
+      lidarType = string("Pandar64");
+    }
 
     // pcapFile = "/home/pandora/Desktop/pandar40p.pcap";
 
@@ -49,9 +55,9 @@ public:
     }
     else if(serverIp.empty())
     {
-      hsdk = new PandarGeneralSDK("192.168.1.201", lidarRecvPort, gpsPort,
-                      boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2),
-                      NULL, 0, 0, std::string("hesai64"));
+      hsdk = new PandarGeneralSDK("192.168.1.201", lidarRecvPort, gpsPort, \
+          boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2), \
+          NULL, 0, 0, lidarType);
     }
 
     hsdk->Start();

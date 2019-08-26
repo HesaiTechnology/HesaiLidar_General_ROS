@@ -96,6 +96,26 @@ HS_LIDAR_L64_6_BLOCK_PACKET_BODY_SIZE + HS_LIDAR_L64_PACKET_TAIL_WITHOUT_UDPSEQ_
 #define HS_LIDAR_L64_7PACKET_WITHOUT_UDPSEQ_SIZE ( HS_LIDAR_L64_HEAD_SIZE + \
 HS_LIDAR_L64_7_BLOCK_PACKET_BODY_SIZE + HS_LIDAR_L64_PACKET_TAIL_WITHOUT_UDPSEQ_SIZE)
 
+/**
+ * Pandar20
+ */
+#define HS_LIDAR_L20_HEAD_SIZE (8)
+#define HS_LIDAR_L20_BLOCK_NUMBER (20)
+#define HS_LIDAR_L20_BLOCK_HEADER_AZIMUTH (2)
+#define HS_LIDAR_L20_UNIT_NUM (20)
+#define HS_LIDAR_L20_UNIT_SIZE (3)
+#define HS_LIDAR_L20_BLOCK_SIZE (HS_LIDAR_L20_UNIT_SIZE * \
+    HS_LIDAR_L20_UNIT_NUM + HS_LIDAR_L20_BLOCK_HEADER_AZIMUTH)
+#define HS_LIDAR_L20_TIMESTAMP_SIZE (4)
+#define HS_LIDAR_L20_ECHO_SIZE (1)
+#define HS_LIDAR_L20_FACTORY_SIZE (1)
+#define HS_LIDAR_L20_RESERVED_SIZE (8)
+#define HS_LIDAR_L20_ENGINE_VELOCITY (2)
+#define HS_LIDAR_L20_BLOCK_PACKET_BODY_SIZE (HS_LIDAR_L20_BLOCK_SIZE * \
+    HS_LIDAR_L20_BLOCK_NUMBER)
+#define HS_LIDAR_L20_PACKET_TAIL_SIZE (22)
+#define HS_LIDAR_L20_PACKET_SIZE ( HS_LIDAR_L20_HEAD_SIZE + \
+    HS_LIDAR_L20_BLOCK_PACKET_BODY_SIZE + HS_LIDAR_L20_PACKET_TAIL_SIZE)
 
 #define GPS_PACKET_SIZE (512)
 #define GPS_PACKET_FLAG_SIZE (2)
@@ -148,39 +168,66 @@ typedef struct HS_LIDAR_L64_Header_s{
         chReturnType = 0;
         chDisUnit = 0;
     }
-}HS_LIDAR_L64_Header;
+} HS_LIDAR_L64_Header;
 
 typedef struct HS_LIDAR_L64_Unit_s{
-    double distance; // *6mm or *5mm or *4mm , 
-                           // real distance =  distance * 2 mm; 
-                           // max distance: (2^24 â€?1) * 2mm = 33554.43m
-    unsigned short reflectivity; // reflectivity
-}HS_LIDAR_L64_Unit;
+    double distance;
+    unsigned short intensity;
+} HS_LIDAR_L64_Unit;
 
 
 typedef struct HS_LIDAR_L64_Block_s{
     unsigned short azimuth; // packet angle  ,Azimuth = RealAzimuth * 100
     HS_LIDAR_L64_Unit units[HS_LIDAR_L64_UNIT_NUM];
-}HS_LIDAR_L64_Block;
+} HS_LIDAR_L64_Block;
 
 typedef struct HS_LIDAR_L64_Packet_s{
     HS_LIDAR_L64_Header header;
     HS_LIDAR_L64_Block blocks[HS_LIDAR_L64_BLOCK_NUMBER_7];
-    unsigned int upcavity_temp;
-    unsigned int downcavity_temp[4];
-    unsigned char status_id;
-    unsigned short status_data;
-    unsigned char reserved;
-    unsigned short error_per_second;
-    unsigned short engine_velocity; // real velocity = <engine_velocity> * 6/11 round/min
     unsigned int timestamp; // ms
     unsigned int echo;
-    unsigned char factory;
-    unsigned char packersizeflag;
     unsigned char addtime[6];
-    unsigned int udpSequence;
-}HS_LIDAR_L64_Packet;
+} HS_LIDAR_L64_Packet;
 /***************Pandar64****************************/
+
+/************Pandar20A/B*******************************/
+typedef struct HS_LIDAR_L20_Header_s{
+    unsigned short sob;     // 0xFFEE 2bytes
+    char chLaserNumber;     // laser number 1byte
+    char chBlockNumber;     //block number 1byte
+    char chReturnType;      // return mode 1 byte  when dual return 0-Single Return 
+                            // 1-The first block is the 1 st return. 
+                            // 2-The first block is the 2 nd return
+    char chDisUnit;         // Distance unit, 6mm/5mm/4mm
+    public:
+    HS_LIDAR_L20_Header_s() {
+        sob = 0;
+        chLaserNumber = 0;
+        chBlockNumber = 0;
+        chReturnType = 0;
+        chDisUnit = 0;
+    }
+} HS_LIDAR_L20_Header;
+
+typedef struct HS_LIDAR_L20_Unit_s{
+    double distance;
+    unsigned short intensity;
+} HS_LIDAR_L20_Unit;
+
+
+typedef struct HS_LIDAR_L20_Block_s{
+    unsigned short azimuth;
+    HS_LIDAR_L20_Unit units[HS_LIDAR_L20_UNIT_NUM];
+} HS_LIDAR_L20_Block;
+
+typedef struct HS_LIDAR_L20_Packet_s{
+    HS_LIDAR_L20_Header header;
+    HS_LIDAR_L20_Block blocks[HS_LIDAR_L20_BLOCK_NUMBER];
+    unsigned int timestamp; // ms
+    unsigned int echo;
+    unsigned char addtime[6];
+} HS_LIDAR_L20_Packet;
+/************Pandar20A/B*******************************/
 
 struct PandarGPS_s {
   uint16_t flag;
@@ -238,10 +285,13 @@ class PandarGeneral_Internal {
   void PushLiDARData(PandarPacket packet);
   int ParseRawData(Pandar40PPacket *packet, const uint8_t *buf, const int len);
   int ParseL64Data(HS_LIDAR_L64_Packet *packet, const uint8_t *recvbuf, const int len);
+  int ParseL20Data(HS_LIDAR_L20_Packet *packet, const uint8_t *recvbuf, const int len);
   int ParseGPS(PandarGPS *packet, const uint8_t *recvbuf, const int size);
   void CalcPointXYZIT(Pandar40PPacket *pkt, int blockid,
                       boost::shared_ptr<PPointCloud> cld);
   void CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blockid, char chLaserNumber,
+                      boost::shared_ptr<PPointCloud> cld);
+  void CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blockid, char chLaserNumber,
                       boost::shared_ptr<PPointCloud> cld);
 
   pthread_mutex_t lidar_lock_;
@@ -270,13 +320,21 @@ class PandarGeneral_Internal {
   float General_elev_angle_map_[HS_LIDAR_L64_UNIT_NUM];
   float General_horizatal_azimuth_offset_map_[HS_LIDAR_L64_UNIT_NUM];
 
-  float block64OffsetSingle_[HS_LIDAR_L64_UNIT_NUM];
-  float block64OffsetDual_[HS_LIDAR_L64_UNIT_NUM];
+  float Pandar20_elev_angle_map_[HS_LIDAR_L20_UNIT_NUM];
+  float Pandar20_horizatal_azimuth_offset_map_[HS_LIDAR_L20_UNIT_NUM];
+
+  float block64OffsetSingle_[HS_LIDAR_L64_BLOCK_NUMBER_6];
+  float block64OffsetDual_[HS_LIDAR_L64_BLOCK_NUMBER_6];
   float laser64Offset_[HS_LIDAR_L64_UNIT_NUM];
 
-  float block40OffsetSingle_[LASER_COUNT];
-  float block40OffsetDual_[LASER_COUNT];
+  float block40OffsetSingle_[BLOCKS_PER_PACKET];
+  float block40OffsetDual_[BLOCKS_PER_PACKET];
   float laser40Offset_[LASER_COUNT];
+
+  float block20OffsetSingle_[HS_LIDAR_L20_BLOCK_NUMBER];
+  float block20OffsetDual_[HS_LIDAR_L20_BLOCK_NUMBER];
+  float laser20AOffset_[HS_LIDAR_L20_UNIT_NUM];
+  float laser20BOffset_[HS_LIDAR_L20_UNIT_NUM];
 
   int tz_second_;
   std::string frame_id_;
