@@ -39,7 +39,12 @@ $ catkin build --force-cmake
 1. While in the `rosworkspace` directory.
 ```
 $ source install/setup.bash
+for Pandar64
 $ roslaunch hesai_lidar hesai_lidar64.launch
+for Pandar20A
+$ roslaunch hesai_lidar hesai_lidar64.launch lidar_type:="Pandar20A"
+for Pandar20B
+$ roslaunch hesai_lidar hesai_lidar64.launch lidar_type:="Pandar20B"
 ```
 2. The driver will publish a PointCloud message in the topic.
 ```
