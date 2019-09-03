@@ -3,7 +3,7 @@
   <name>hesai_lidar</name>
   <version>0.0.0</version>
   <description>
-    The hesai_lidar package includes the driver for the Heisai Pandar64 LiDAR sensor.
+    The hesai_lidar package includes the driver for the Heisai Pandar64/Pandar20A/Pandar20B LiDAR sensor.
   </description>
   <maintainer email="wuxiaozhou@hesaitech.com">hesaiwuxiaozhou</maintainer>
   <license>Apache 2</license>
