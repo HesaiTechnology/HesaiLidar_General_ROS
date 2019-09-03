@@ -18,7 +18,6 @@ public:
 
     string serverIp;
     int serverPort;
-    string calibrationFile;
     int lidarRecvPort;
     int gpsPort;
     double startAngle;
@@ -32,7 +31,6 @@ public:
     nh.getParam("pcap_file", pcapFile);
     nh.getParam("server_ip", serverIp);
     nh.getParam("server_port", serverPort);
-    nh.getParam("calibration_file", calibrationFile);
     nh.getParam("lidar_recv_port", lidarRecvPort);
     nh.getParam("gps_port", gpsPort);
     nh.getParam("start_angle", startAngle);

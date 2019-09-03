@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/amc-nu/HesaiLidar_Pandar64_ros.svg?branch=master)](https://travis-ci.org/amc-nu/HesaiLidar_Pandar64_ros)
 
-# Hesai Pandar64
+# Hesai Pandar General
 
-This repository includes the ROS Driver for the Pandar64 LiDAR sensor manufactured by Hesai Technology.
+This repository includes the ROS Driver for the Pandar64/Pandar20A/Pandar20B LiDAR sensor manufactured by Hesai Technology.
 
 
 ## How to Build
@@ -40,11 +40,11 @@ $ catkin build --force-cmake
 ```
 $ source install/setup.bash
 for Pandar64
-$ roslaunch hesai_lidar hesai_lidar64.launch
+$ roslaunch hesai_lidar hesai_lidar.launch
 for Pandar20A
-$ roslaunch hesai_lidar hesai_lidar64.launch lidar_type:="Pandar20A"
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20A"
 for Pandar20B
-$ roslaunch hesai_lidar hesai_lidar64.launch lidar_type:="Pandar20B"
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20B"
 ```
 2. The driver will publish a PointCloud message in the topic.
 ```
