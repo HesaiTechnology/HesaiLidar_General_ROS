@@ -2,7 +2,7 @@
 
 # Hesai Pandar General
 
-This repository includes the ROS Driver for the Pandar64/Pandar20A/Pandar20B LiDAR sensor manufactured by Hesai Technology.
+This repository includes the ROS Driver for the Pandar64/Pandar20A/Pandar20B/Pandar40P LiDAR sensor manufactured by Hesai Technology.
 
 
 ## How to Build
@@ -45,6 +45,8 @@ for Pandar20A
 $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20A"
 for Pandar20B
 $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20B"
+for Pandar40P
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40P"
 ```
 2. The driver will publish a PointCloud message in the topic.
 ```
