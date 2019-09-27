@@ -22,6 +22,6 @@
 		<param name="laser_return_type"  type="int" value="$(arg laser_return_type)"/>
 		<param name="laser_count"  type="int" value="$(arg laser_count)"/>
 		<param name="pcldata_type"  type="int" value="$(arg pcldata_type)"/>
-		<param name="lidar_type"  type="string" value="$(arg lidar_type"/>
+		<param name="lidar_type"  type="string" value="$(arg lidar_type)"/>
 	</node>
 </launch>
