@@ -52,9 +52,9 @@ public:
     {
       return;
     }
-    else if(serverIp.empty())
+    else
     {
-      hsdk = new PandarGeneralSDK("192.168.1.201", lidarRecvPort, gpsPort, \
+      hsdk = new PandarGeneralSDK(serverIp, lidarRecvPort, gpsPort, \
           boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2), \
           NULL, 0, 0, lidarType);
     }
