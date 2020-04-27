@@ -77,12 +77,35 @@ static const float pandar20_horizatal_azimuth_offset_map[] = {
   -1.042f, -1.042f, -1.042f, -1.042f
 };
 
+/*
+static const float pandarQT_elev_angle_map[] = {
+  -52.121f,-49.785f,-47.577f,-45.477f,-43.465f,-41.528f,-39.653f,-37.831f, \
+  -36.055f,-34.320f,-32.619f,-30.950f,-29.308f,-27.690f,-26.094f,-24.517f, \
+  -22.964f,-21.420f,-19.889f,-18.372f,-16.865f,-15.368f,-13.880f,-12.399f, \
+  -10.925f, -9.457f, -7.994f, -6.535f, -5.079f, -3.626f, -2.175f, -0.725f, \
+    0.725f,  2.175f,  3.626f,  5.079f,  6.534f,  7.993f,  9.456f, 10.923f, \
+   12.397f, 13.877f, 15.365f, 16.861f, 18.368f, 19.885f, 21.415f, 22.959f, \
+   24.524f, 26.101f, 27.697f, 29.315f, 30.957f, 32.627f, 34.328f, 36.064f, \
+   37.840f, 39.662f, 41.537f, 43.475f, 45.487f, 47.587f, 49.795f, 52.133f
+};
+
+static const float pandarQT_horizatal_azimuth_offset_map[] = {
+   8.736f, 8.314f, 7.964f, 7.669f, 7.417f, 7.198f, 7.007f, 6.838f, \
+   6.688f, 6.554f, 6.434f, 6.326f, 6.228f, 6.140f, 6.059f, 5.987f, \
+  -5.270f,-5.216f,-5.167f,-5.123f,-5.083f,-5.047f,-5.016f,-4.988f, \
+  -4.963f,-4.942f,-4.924f,-4.910f,-4.898f,-4.889f,-4.884f,-4.881f, \
+   5.493f, 5.496f, 5.502f, 5.512f, 5.525f, 5.541f, 5.561f, 5.584f, \
+   5.611f, 5.642f, 5.676f, 5.716f, 5.759f, 5.808f, 5.862f, 5.921f, \
+  -5.330f,-5.396f,-5.469f,-5.550f,-5.640f,-5.740f,-5.850f,-5.974f, \
+  -6.113f,-6.269f,-6.447f,-6.651f,-6.887f,-7.163f,-7.493f,-7.892f
+};
+*/
+
 PandarGeneral_Internal::PandarGeneral_Internal(
     std::string device_ip, uint16_t lidar_port, uint16_t gps_port,
     boost::function<void(boost::shared_ptr<PPointCloud>, double)> pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle, int tz,
     std::string frame_id) {
-  
   
   pthread_mutex_init(&lidar_lock_, NULL);
   sem_init(&lidar_sem_, 0, 0);
@@ -303,6 +326,85 @@ PandarGeneral_Internal::PandarGeneral_Internal(
   laser20BOffset_[12] = 1.304f * 15.0f + 1.968f * 13.0f + 3.62f;
   laser20BOffset_[7] = 1.304f * 15.0f + 1.968f * 14.0f + 3.62f;
 
+  // QT
+  blockQTOffsetSingle_[0] = 25.71f;
+  blockQTOffsetSingle_[1] = 25.71f + 166.67f;
+  blockQTOffsetSingle_[2] = 25.71f + 333.33f;
+  blockQTOffsetSingle_[3] = 25.71f + 500.00f;
+
+  blockQTOffsetDual_[0] = 25.71f;
+  blockQTOffsetDual_[1] = 25.71f;
+  blockQTOffsetDual_[2] = 25.71f + 166.67f;
+  blockQTOffsetDual_[3] = 25.71f + 166.67f;
+
+  laserQTOffset_[0] = 10.0f + 2.31f;
+  laserQTOffset_[1] = 10.0f + 4.37f;
+  laserQTOffset_[2] = 10.0f + 6.43f;
+  laserQTOffset_[3] = 10.0f + 8.49f;
+  laserQTOffset_[4] = 10.0f + 10.54f;
+  laserQTOffset_[5] = 10.0f + 12.60f;
+  laserQTOffset_[6] = 10.0f + 14.66f;
+  laserQTOffset_[7] = 10.0f + 16.71f;
+  laserQTOffset_[8] = 10.0f + 19.16f;
+  laserQTOffset_[9] = 10.0f + 21.22f;
+  laserQTOffset_[10] = 10.0f + 23.28f;
+  laserQTOffset_[11] = 10.0f + 25.34f;
+  laserQTOffset_[12] = 10.0f + 27.39f;
+  laserQTOffset_[13] = 10.0f + 29.45f;
+  laserQTOffset_[14] = 10.0f + 31.50f;
+  laserQTOffset_[15] = 10.0f + 33.56f;
+
+  laserQTOffset_[16] = 10.0f + 36.61f;
+  laserQTOffset_[17] = 10.0f + 38.67f;
+  laserQTOffset_[18] = 10.0f + 40.73f;
+  laserQTOffset_[19] = 10.0f + 42.78f;
+  laserQTOffset_[20] = 10.0f + 44.84f;
+  laserQTOffset_[21] = 10.0f + 46.90f;
+  laserQTOffset_[22] = 10.0f + 48.95f;
+  laserQTOffset_[23] = 10.0f + 51.01f;
+  laserQTOffset_[24] = 10.0f + 53.45f;
+  laserQTOffset_[25] = 10.0f + 55.52f;
+  laserQTOffset_[26] = 10.0f + 57.58f;
+  laserQTOffset_[27] = 10.0f + 59.63f;
+  laserQTOffset_[28] = 10.0f + 61.69f;
+  laserQTOffset_[29] = 10.0f + 63.74f;
+  laserQTOffset_[30] = 10.0f + 65.80f;
+  laserQTOffset_[31] = 10.0f + 67.86f;
+
+  laserQTOffset_[32] = 10.0f + 70.90f;
+  laserQTOffset_[33] = 10.0f + 72.97f;
+  laserQTOffset_[34] = 10.0f + 75.02f;
+  laserQTOffset_[35] = 10.0f + 77.08f;
+  laserQTOffset_[36] = 10.0f + 79.14f;
+  laserQTOffset_[37] = 10.0f + 81.19f;
+  laserQTOffset_[38] = 10.0f + 83.25f;
+  laserQTOffset_[39] = 10.0f + 85.30f;
+  laserQTOffset_[40] = 10.0f + 87.75f;
+  laserQTOffset_[41] = 10.0f + 89.82f;
+  laserQTOffset_[42] = 10.0f + 91.87f;
+  laserQTOffset_[43] = 10.0f + 93.93f;
+  laserQTOffset_[44] = 10.0f + 95.98f;
+  laserQTOffset_[45] = 10.0f + 98.04f;
+  laserQTOffset_[46] = 10.0f + 100.10f;
+  laserQTOffset_[47] = 10.0f + 102.15f;
+
+  laserQTOffset_[48] = 10.0f + 105.20f;
+  laserQTOffset_[49] = 10.0f + 107.26f;
+  laserQTOffset_[50] = 10.0f + 109.32f;
+  laserQTOffset_[51] = 10.0f + 111.38f;
+  laserQTOffset_[52] = 10.0f + 113.43f;
+  laserQTOffset_[53] = 10.0f + 115.49f;
+  laserQTOffset_[54] = 10.0f + 117.54f;
+  laserQTOffset_[55] = 10.0f + 119.60f;
+  laserQTOffset_[56] = 10.0f + 122.05f;
+  laserQTOffset_[57] = 10.0f + 124.11f;
+  laserQTOffset_[58] = 10.0f + 126.17f;
+  laserQTOffset_[59] = 10.0f + 128.22f;
+  laserQTOffset_[60] = 10.0f + 130.28f;
+  laserQTOffset_[61] = 10.0f + 132.34f;
+  laserQTOffset_[62] = 10.0f + 134.39f;
+  laserQTOffset_[63] = 10.0f + 136.45f;
+
 
   for (int i = 0; i < LASER_COUNT; i++) {
     // for all the laser offset 
@@ -321,6 +423,11 @@ PandarGeneral_Internal::PandarGeneral_Internal(
   for (int i = 0; i < HS_LIDAR_L20_UNIT_NUM; i++) {
     Pandar20_elev_angle_map_[i] = pandar20_elev_angle_map[i];
     Pandar20_horizatal_azimuth_offset_map_[i] = pandar20_horizatal_azimuth_offset_map[i];
+  }
+
+  for (int i = 0; i < HS_LIDAR_QT_UNIT_NUM; i++) {
+    PandarQT_elev_angle_map_[i] = pandarQT_elev_angle_map[i];
+    PandarQT_horizatal_azimuth_offset_map_[i] = pandarQT_horizatal_azimuth_offset_map[i];
   }
 
   frame_id_ = frame_id;
@@ -462,7 +569,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
     lidar_packets_.pop_front();
     pthread_mutex_unlock(&lidar_lock_);
 
-    if (packet.size == PACKET_SIZE) {
+    if (packet.size == PACKET_SIZE || packet.size == PACKET_SIZE + SEQ_NUM_SIZE) {
       Pandar40PPacket pkt;
       ret = ParseRawData(&pkt, packet.data, packet.size);
 
@@ -567,6 +674,40 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
         CalcL20PointXYZIT(&pkt, i, pkt.header.chLaserNumber, outMsg);
         last_azimuth_ = pkt.blocks[i].azimuth;
       }
+    } else if(packet.size == HS_LIDAR_QT_PACKET_SIZE || \
+        packet.size == HS_LIDAR_QT_PACKET_WITHOUT_UDPSEQ_SIZE) {
+      HS_LIDAR_QT_Packet pkt;
+      ret = ParseQTData(&pkt, packet.data, packet.size);
+      if (ret != 0) {
+        continue;
+      }
+
+      for (int i = 0; i < pkt.header.chBlockNumber; ++i) {
+        int azimuthGap = 0; /* To do */
+        if(last_azimuth_ > pkt.blocks[i].azimuth) {
+          azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) + (36000 - static_cast<int>(last_azimuth_));
+        } else {
+          azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) - static_cast<int>(last_azimuth_);
+        }
+
+        if (last_azimuth_ != pkt.blocks[i].azimuth && \
+            azimuthGap < 600 /* 6 degree*/) {
+          /* for all the blocks */
+          if ((last_azimuth_ > pkt.blocks[i].azimuth &&
+               start_angle_ <= pkt.blocks[i].azimuth) ||
+              (last_azimuth_ < start_angle_ &&
+               start_angle_ <= pkt.blocks[i].azimuth)) {
+            if (pcl_callback_ && outMsg->points.size() > 0) {
+              pcl_callback_(outMsg, outMsg->points[0].timestamp);
+              outMsg.reset(new PPointCloud());
+            }
+          }
+        } else {
+          //printf("last_azimuth_:%d pkt.blocks[i].azimuth:%d  *******azimuthGap:%d\n", last_azimuth_, pkt.blocks[i].azimuth, azimuthGap);
+        }
+        CalcQTPointXYZIT(&pkt, i, pkt.header.chLaserNumber, outMsg);
+        last_azimuth_ = pkt.blocks[i].azimuth;
+      }
     } else {
       continue;
     }
@@ -599,13 +740,14 @@ void PandarGeneral_Internal::ProcessGps(const PandarGPS &gpsMsg) {
   t.tm_isdst = 0;
 
   if (gps_callback_) {
+    printf("Enter if\n");
     gps_callback_(static_cast<double>(mktime(&t) + tz_second_));
   }
 }
 
 int PandarGeneral_Internal::ParseRawData(Pandar40PPacket *packet,
                                      const uint8_t *buf, const int len) {
-  if (len != PACKET_SIZE) {
+  if (len != PACKET_SIZE && len != PACKET_SIZE + SEQ_NUM_SIZE) {
     std::cout << "packet size mismatch PandarGeneral_Internal " << len << ","
               << PACKET_SIZE << std::endl;
     return -1;
@@ -805,6 +947,80 @@ int PandarGeneral_Internal::ParseL20Data(HS_LIDAR_L20_Packet *packet, \
 
   return 0;
 }
+
+/**
+ * Pandar QT
+ */
+int PandarGeneral_Internal::ParseQTData(HS_LIDAR_QT_Packet *packet,
+                                const uint8_t *recvbuf, const int len) {
+  if (len != HS_LIDAR_QT_PACKET_SIZE &&
+      len != HS_LIDAR_QT_PACKET_WITHOUT_UDPSEQ_SIZE) {
+    std::cout << "packet size mismatch PandarQT " << len << "," << \
+        len << std::endl;
+    return -1;
+  }
+
+  int index = 0;
+  int block = 0;
+  //Parse 12 Bytes Header
+  packet->header.sob = (recvbuf[index] & 0xff) << 8| ((recvbuf[index+1] & 0xff));
+  packet->header.chProtocolMajor = recvbuf[index+2] & 0xff;
+  packet->header.chProtocolMinor = recvbuf[index+3] & 0xff;
+  packet->header.chLaserNumber = recvbuf[index+6] & 0xff;
+  packet->header.chBlockNumber = recvbuf[index+7] & 0xff;
+  packet->header.chReturnType = recvbuf[index+8] & 0xff;
+  packet->header.chDisUnit = recvbuf[index+9] & 0xff;
+  index += HS_LIDAR_QT_HEAD_SIZE;
+
+  if (packet->header.sob != 0xEEFF) {
+    printf("Error Start of Packet!\n");
+    return -1;
+  }
+
+  for(block = 0; block < packet->header.chBlockNumber; block++) {
+    packet->blocks[block].azimuth = (recvbuf[index] & 0xff) | \
+        ((recvbuf[index + 1] & 0xff) << 8);
+    index += HS_LIDAR_QT_BLOCK_HEADER_AZIMUTH;
+
+    int unit;
+
+    for(unit = 0; unit < packet->header.chLaserNumber; unit++) {
+      unsigned int unRange = (recvbuf[index]& 0xff) | ((recvbuf[index + 1]& 0xff) << 8);
+
+      packet->blocks[block].units[unit].distance = \
+          (static_cast<double>(unRange * packet->header.chDisUnit)) / (double)1000;
+      packet->blocks[block].units[unit].intensity = (recvbuf[index+2]& 0xff);
+      packet->blocks[block].units[unit].confidence = (recvbuf[index+3]& 0xff);
+      index += HS_LIDAR_QT_UNIT_SIZE;
+    }
+  }
+
+  index += HS_LIDAR_QT_RESERVED_SIZE; // skip reserved bytes
+  index += HS_LIDAR_QT_ENGINE_VELOCITY;
+
+  packet->timestamp = (recvbuf[index] & 0xff)| (recvbuf[index+1] & 0xff) << 8 | \
+      ((recvbuf[index+2] & 0xff) << 16) | ((recvbuf[index+3] & 0xff) << 24);
+    // printf("timestamp %u \n", packet->timestamp);
+  index += HS_LIDAR_QT_TIMESTAMP_SIZE;
+
+  packet->echo = recvbuf[index]& 0xff;
+
+  index += HS_LIDAR_QT_ECHO_SIZE;
+  index += HS_LIDAR_QT_FACTORY_SIZE;
+    
+  packet->addtime[0] = recvbuf[index]& 0xff;
+  packet->addtime[1] = recvbuf[index + 1]& 0xff;
+  packet->addtime[2] = recvbuf[index + 2]& 0xff;
+  packet->addtime[3] = recvbuf[index + 3]& 0xff;
+  packet->addtime[4] = recvbuf[index + 4]& 0xff;
+  packet->addtime[5] = recvbuf[index + 5]& 0xff;
+
+  index += HS_LIDAR_TIME_SIZE;
+
+  return 0;
+}
+
+
 int PandarGeneral_Internal::ParseGPS(PandarGPS *packet, const uint8_t *recvbuf, \
     const int size) {
   if (size != GPS_PACKET_SIZE) {
@@ -1020,6 +1236,71 @@ void PandarGeneral_Internal::CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blo
             (static_cast<double>(block20OffsetSingle_[blockid] + \
             laser20BOffset_[i]) / 1000000.0f);
       }
+    }
+
+    point.ring = i;
+
+    cld->push_back(point);
+  }
+}
+
+// QT
+void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int blockid, \
+    char chLaserNumber, boost::shared_ptr<PPointCloud> cld) {
+  HS_LIDAR_QT_Block *block = &pkt->blocks[blockid];
+
+  struct tm tTm;
+  // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
+  // and mktime's year start from 1900 which is 0. so we need add 100 year.
+  tTm.tm_year = pkt->addtime[0];
+  // UTC's month start from 1, but mktime only accept month from 0.
+  tTm.tm_mon = pkt->addtime[1] - 1;
+  tTm.tm_mday = pkt->addtime[2];
+  tTm.tm_hour = pkt->addtime[3];
+  tTm.tm_min = pkt->addtime[4];
+  tTm.tm_sec = pkt->addtime[5];
+  tTm.tm_isdst = 0;
+
+  double unix_second = \
+      static_cast<double>(mktime(&tTm) + tz_second_);
+
+  for (int i = 0; i < chLaserNumber; ++i) {
+    /* for all the units in a block */
+    HS_LIDAR_QT_Unit &unit = block->units[i];
+    PPoint point;
+
+    /* skip wrong points */
+    if (unit.distance <= 0.1 || unit.distance > 200.0) {
+      continue;
+    }
+
+    double xyDistance = unit.distance * cosf(degreeToRadian(PandarQT_elev_angle_map_[i]));
+
+    point.x = static_cast<float>(xyDistance * \
+        sinf(degreeToRadian(PandarQT_horizatal_azimuth_offset_map_[i] + \
+        (static_cast<double>(block->azimuth)) / 100.0)));
+    point.y = static_cast<float>(xyDistance * \
+        cosf(degreeToRadian(PandarQT_horizatal_azimuth_offset_map_[i] + \
+        (static_cast<double>(block->azimuth)) / 100.0)));
+    point.z = static_cast<float>(unit.distance * \
+        sinf(degreeToRadian(PandarQT_elev_angle_map_[i])));
+
+    point.intensity = unit.intensity;
+
+    point.timestamp = unix_second + \
+        (static_cast<double>(pkt->timestamp)) / 1000000.0;
+
+    if (pkt->echo == 0x05) {
+      // dual return, block 0&1 (2&3 , 4*5 ...)'s timestamp is the same.
+      // dual:0x05, single:0x00
+      point.timestamp =
+          point.timestamp + (static_cast<double>(blockQTOffsetDual_[blockid] +
+                                                 laserQTOffset_[i]) /
+                             1000000.0f);
+    } else {
+      point.timestamp = point.timestamp + \
+          (static_cast<double>(blockQTOffsetSingle_[blockid] + laserQTOffset_[i]) / \
+          1000000.0f);
     }
 
     point.ring = i;

@@ -20,6 +20,7 @@
 
 #define PANDARGENERALSDK_TCP_COMMAND_PORT (9347)
 
+/*
 class PandarGeneralSDK_Internal {
  public:
   PandarGeneralSDK_Internal(
@@ -44,8 +45,8 @@ class PandarGeneralSDK_Internal {
   bool got_lidar_calibration_;
   std::string correction_content_;
 };
-
-PandarGeneralSDK_Internal::PandarGeneralSDK_Internal(
+*/
+PandarGeneralSDK::PandarGeneralSDK(
     std::string device_ip, const uint16_t lidar_port, const uint16_t gps_port,
     boost::function<void(boost::shared_ptr<PPointCloud>, double)>
         pcl_callback,
@@ -66,7 +67,7 @@ PandarGeneralSDK_Internal::PandarGeneralSDK_Internal(
   got_lidar_calibration_ = false;
 }
 
-PandarGeneralSDK_Internal::~PandarGeneralSDK_Internal() {
+PandarGeneralSDK::~PandarGeneralSDK() {
   Stop();
   if (pandarGeneral_) {
     delete pandarGeneral_;
@@ -77,7 +78,7 @@ PandarGeneralSDK_Internal::~PandarGeneralSDK_Internal() {
  * @brief load the correction file
  * @param file The path of correction file
  */
-int PandarGeneralSDK_Internal::LoadLidarCorrectionFile(
+int PandarGeneralSDK::LoadLidarCorrectionFile(
     std::string correction_content) {
   return pandarGeneral_->LoadCorrectionFile(correction_content);
 }
@@ -86,16 +87,16 @@ int PandarGeneralSDK_Internal::LoadLidarCorrectionFile(
  * @brief load the correction file
  * @param angle The start angle
  */
-void PandarGeneralSDK_Internal::ResetLidarStartAngle(uint16_t start_angle) {
+void PandarGeneralSDK::ResetLidarStartAngle(uint16_t start_angle) {
   if (!pandarGeneral_) return;
   pandarGeneral_->ResetStartAngle(start_angle);
 }
 
-std::string PandarGeneralSDK_Internal::GetLidarCalibration() {
+std::string PandarGeneralSDK::GetLidarCalibration() {
   return correction_content_;
 }
 
-int PandarGeneralSDK_Internal::Start() {
+int PandarGeneralSDK::Start() {
   Stop();
 
   if (pandarGeneral_) {
@@ -104,10 +105,10 @@ int PandarGeneralSDK_Internal::Start() {
 
   enable_get_calibration_thr_ = true;
   get_calibration_thr_ = new boost::thread(
-      boost::bind(&PandarGeneralSDK_Internal::GetCalibrationFromDevice, this));
+      boost::bind(&PandarGeneralSDK::GetCalibrationFromDevice, this));
 }
 
-void PandarGeneralSDK_Internal::Stop() {
+void PandarGeneralSDK::Stop() {
   if (pandarGeneral_) pandarGeneral_->Stop();
 
   enable_get_calibration_thr_ = false;
@@ -116,7 +117,7 @@ void PandarGeneralSDK_Internal::Stop() {
   }
 }
 
-void PandarGeneralSDK_Internal::GetCalibrationFromDevice() {
+void PandarGeneralSDK::GetCalibrationFromDevice() {
   if (!tcp_command_client_) {
     return;
   }
@@ -150,64 +151,3 @@ void PandarGeneralSDK_Internal::GetCalibrationFromDevice() {
     sleep(1);
   }
 }
-
-/*****************************************************************************************
-PandarGeneralSDK Part
-*****************************************************************************************/
-/**
- * @brief Constructor
- * @param device_ip         The ip of the device
- *        lidar_port        The port number of lidar data
- *        gps_port          The port number of gps data
- *        pcl_callback      The callback of PCL data structure
- *        gps_callback      The callback of GPS structure
- *        start_angle       The start angle of every point cloud
- */
-PandarGeneralSDK::PandarGeneralSDK(
-    std::string device_ip, const uint16_t lidar_port, const uint16_t gps_port,
-    boost::function<void(boost::shared_ptr<PPointCloud>, double)> pcl_callback,
-    boost::function<void(double)> gps_callback, uint16_t start_angle,
-    int tz, std::string frame_id) {
-  internal_ = new PandarGeneralSDK_Internal(
-      device_ip, lidar_port, gps_port, pcl_callback, gps_callback, start_angle,
-      tz, frame_id);
-}
-
-/**
- * @brief deconstructor
- */
-PandarGeneralSDK::~PandarGeneralSDK() { delete internal_; }
-
-/**
- * @brief load the lidar correction file
- * @param contents The correction contents of lidar correction
- */
-int PandarGeneralSDK::LoadLidarCorrectionFile(std::string contents) {
-  internal_->LoadLidarCorrectionFile(contents);
-}
-
-/**
- * @brief Reset Lidar's start angle.
- * @param angle The start angle
- */
-void PandarGeneralSDK::ResetLidarStartAngle(uint16_t start_angle) {
-  internal_->ResetLidarStartAngle(start_angle);
-}
-
-/**
- * @brief Get Lidar's Calibration.
- * @return The correction contents of lidar correction
- */
-std::string PandarGeneralSDK::GetLidarCalibration() {
-  return internal_->GetLidarCalibration();
-}
-
-/**
- * @brief Run SDK.
- */
-int PandarGeneralSDK::Start() { internal_->Start(); }
-
-/**
- * @brief Stop SDK.
- */
-void PandarGeneralSDK::Stop() { internal_->Stop(); }

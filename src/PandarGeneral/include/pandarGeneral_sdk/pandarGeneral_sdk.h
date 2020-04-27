@@ -30,7 +30,7 @@
 #include "pandarGeneral/pandarGeneral.h"
 #include "pandarGeneral/point_types.h"
 
-class PandarGeneralSDK_Internal;
+//class PandarGeneralSDK_Internal;
 
 class PandarGeneralSDK {
  public:
@@ -44,48 +44,34 @@ class PandarGeneralSDK {
    *        start_angle       The start angle of every point cloud
    *                          should be <real angle> * 100.
    */
-  PandarGeneralSDK(std::string device_ip, const uint16_t lidar_port,
-          const uint16_t gps_port,
-          boost::function<void(boost::shared_ptr<PPointCloud>, double)>
-              pcl_callback,
-          boost::function<void(double)> gps_callback, uint16_t start_angle,
-          int tz = 0,
-          std::string frame_id = std::string("hesai40"));
-  /**
-   * @brief deconstructor
-   */
+  PandarGeneralSDK(
+      std::string device_ip, const uint16_t lidar_port, const uint16_t gps_port,
+      boost::function<void(boost::shared_ptr<PPointCloud>, double)>
+          pcl_callback,
+      boost::function<void(double)> gps_callback, uint16_t start_angle,
+      int tz, std::string frame_id);
   ~PandarGeneralSDK();
 
   /**
-   * @brief load the lidar correction file.
-   * @param contents The correction contents of lidar correction
+   * @brief load the correction file
+   * @param file The path of correction file
    */
-  int LoadLidarCorrectionFile(std::string contents);
-
-  /**
-   * @brief Reset Lidar's start angle.
-   * @param angle The start angle
-   */
+  int LoadLidarCorrectionFile(std::string correction_content);
   void ResetLidarStartAngle(uint16_t start_angle);
-
-  /**
-   * @brief Get Lidar's Calibration.
-   * @return The correction contents of lidar correction
-   */
   std::string GetLidarCalibration();
-
-  /**
-   * @brief Run SDK.
-   */
+  void GetCalibrationFromDevice();
   int Start();
-
-  /**
-   * @brief Stop SDK.
-   */
   void Stop();
 
  private:
-  PandarGeneralSDK_Internal *internal_;
+  PandarGeneral *pandarGeneral_;
+  void *tcp_command_client_;
+  boost::thread *get_calibration_thr_;
+  bool enable_get_calibration_thr_;
+  bool got_lidar_calibration_;
+  std::string correction_content_;
 };
+
+
 
 #endif  // INCLUDE_PANDAR40P_SDK_PANDAR40P_SDK_H_

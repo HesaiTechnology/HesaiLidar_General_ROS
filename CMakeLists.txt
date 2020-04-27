@@ -20,7 +20,6 @@ find_package(catkin REQUIRED COMPONENTS
     message_runtime
     image_transport
     pcl_conversions
-    cv_bridge
 )
 catkin_package()
 
@@ -54,7 +53,6 @@ target_include_directories(PandarGeneralSDK PRIVATE
     src/PandarGeneral/src/PandarGeneralRaw/include
     ${Boost_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS}
-    ${OpenCV_INCLUDE_DIRS}
     ${YAML_CPP_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
 )
@@ -68,7 +66,7 @@ target_link_libraries(PandarGeneralSDK
 )
 
 ###hesai node
-add_executable(hesai_lidar_node 
+add_executable(hesai_lidar_node
     src/main.cc
 )
 

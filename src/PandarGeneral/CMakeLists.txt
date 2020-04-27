@@ -14,7 +14,6 @@ include_directories(
     src/PandarGeneralRaw/include
     ${Boost_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS}
-    ${OpenCV_INCLUDE_DIRS}
 )
 
 add_library( ${PROJECT_NAME} SHARED
@@ -27,9 +26,17 @@ target_link_libraries(${PROJECT_NAME}
     PandarGeneral
     ${Boost_LIBRARIES}
     ${PCL_IO_LIBRARIES}
-    yaml-cpp
 )
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+    add_executable(PandarGeneralTest
+        test/test.cc
+    )
 
+    target_link_libraries(PandarGeneralTest
+        ${PROJECT_NAME}
+        ${Boost_LIBRARIES}
+        ${PCL_IO_LIBRARIES}
+    )
 endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+

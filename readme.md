@@ -2,7 +2,7 @@
 
 # Hesai Pandar General
 
-This repository includes the ROS Driver for the Pandar64/Pandar20A/Pandar20B/Pandar40P LiDAR sensor manufactured by Hesai Technology.
+This repository includes the ROS Driver for the PandarQT/Pandar64/Pandar40P/Pandar20A/Pandar20B/Pandar40M LiDAR sensor manufactured by Hesai Technology.
 
 
 ## How to Build
@@ -39,21 +39,25 @@ $ catkin build --force-cmake
 1. While in the `rosworkspace` directory.
 ```
 $ source install/setup.bash
+for PandarQT
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarQT"
 for Pandar64
-$ roslaunch hesai_lidar hesai_lidar.launch
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar64"
 for Pandar20A
 $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20A"
 for Pandar20B
 $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20B"
 for Pandar40P
 $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40P"
+for Pandar40M
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40M"
 ```
 2. The driver will publish a PointCloud message in the topic.
 ```
-/points_raw
+/pandar
 ```
 3. Open Rviz and add display by topic.
-4. Change fixed frame to `pandar`.
+4. Change fixed frame to lidar_type.
 
 LiDAR default IP address is 192.168.1.201
 

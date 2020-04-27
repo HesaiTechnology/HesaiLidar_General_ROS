@@ -29,6 +29,7 @@
 
 #include "pandarGeneral/point_types.h"
 #include "src/input.h"
+#include "src/pandarQT.h"
 
 #define SOB_ANGLE_SIZE (4)
 #define RAW_MEASURE_SIZE (3)
@@ -45,6 +46,7 @@
 #define UTC_TIME (6)
 #define PACKET_SIZE (BLOCK_SIZE * BLOCKS_PER_PACKET + INFO_SIZE + UTC_TIME)
 #define LASER_RETURN_TO_DISTANCE_RATE (0.004)
+#define SEQ_NUM_SIZE (4)
 
 /**
  * Pandar 64
@@ -114,6 +116,7 @@ HS_LIDAR_L64_7_BLOCK_PACKET_BODY_SIZE + HS_LIDAR_L64_PACKET_TAIL_WITHOUT_UDPSEQ_
 #define HS_LIDAR_L20_PACKET_TAIL_SIZE (22)
 #define HS_LIDAR_L20_PACKET_SIZE ( HS_LIDAR_L20_HEAD_SIZE + \
     HS_LIDAR_L20_BLOCK_PACKET_BODY_SIZE + HS_LIDAR_L20_PACKET_TAIL_SIZE)
+
 
 #define GPS_PACKET_SIZE (512)
 #define GPS_PACKET_FLAG_SIZE (2)
@@ -227,6 +230,7 @@ typedef struct HS_LIDAR_L20_Packet_s{
 } HS_LIDAR_L20_Packet;
 /************Pandar20A/B*******************************/
 
+
 struct PandarGPS_s {
   uint16_t flag;
   uint16_t year;
@@ -284,12 +288,15 @@ class PandarGeneral_Internal {
   int ParseRawData(Pandar40PPacket *packet, const uint8_t *buf, const int len);
   int ParseL64Data(HS_LIDAR_L64_Packet *packet, const uint8_t *recvbuf, const int len);
   int ParseL20Data(HS_LIDAR_L20_Packet *packet, const uint8_t *recvbuf, const int len);
+  int ParseQTData(HS_LIDAR_QT_Packet *packet, const uint8_t *recvbuf, const int len);
   int ParseGPS(PandarGPS *packet, const uint8_t *recvbuf, const int size);
   void CalcPointXYZIT(Pandar40PPacket *pkt, int blockid,
                       boost::shared_ptr<PPointCloud> cld);
   void CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blockid, char chLaserNumber,
                       boost::shared_ptr<PPointCloud> cld);
   void CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blockid, char chLaserNumber,
+                      boost::shared_ptr<PPointCloud> cld);
+  void CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int blockid, char chLaserNumber,
                       boost::shared_ptr<PPointCloud> cld);
 
   pthread_mutex_t lidar_lock_;
@@ -321,6 +328,9 @@ class PandarGeneral_Internal {
   float Pandar20_elev_angle_map_[HS_LIDAR_L20_UNIT_NUM];
   float Pandar20_horizatal_azimuth_offset_map_[HS_LIDAR_L20_UNIT_NUM];
 
+  float PandarQT_elev_angle_map_[HS_LIDAR_QT_UNIT_NUM];
+  float PandarQT_horizatal_azimuth_offset_map_[HS_LIDAR_QT_UNIT_NUM];
+
   float block64OffsetSingle_[HS_LIDAR_L64_BLOCK_NUMBER_6];
   float block64OffsetDual_[HS_LIDAR_L64_BLOCK_NUMBER_6];
   float laser64Offset_[HS_LIDAR_L64_UNIT_NUM];
@@ -333,6 +343,10 @@ class PandarGeneral_Internal {
   float block20OffsetDual_[HS_LIDAR_L20_BLOCK_NUMBER];
   float laser20AOffset_[HS_LIDAR_L20_UNIT_NUM];
   float laser20BOffset_[HS_LIDAR_L20_UNIT_NUM];
+
+  float blockQTOffsetSingle_[HS_LIDAR_QT_BLOCK_NUMBER];
+  float blockQTOffsetDual_[HS_LIDAR_QT_BLOCK_NUMBER];
+  float laserQTOffset_[HS_LIDAR_QT_UNIT_NUM];
 
   int tz_second_;
   std::string frame_id_;

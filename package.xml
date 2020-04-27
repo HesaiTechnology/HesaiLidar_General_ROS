@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>hesai_lidar</name>
-  <version>0.0.0</version>
+  <version>0.1.0</version>
   <description>
-      The hesai_lidar package includes the driver for the Heisai Pandar64/Pandar20A/Pandar20B/Pandar40P LiDAR sensor.
+    The hesai_lidar package includes the driver for the Heisai PandarQT/Pandar64/Pandar40P/Pandar20A/Pandar20B/Pandar40M LiDAR sensor.
   </description>
   <maintainer email="wuxiaozhou@hesaitech.com">hesaiwuxiaozhou</maintainer>
   <license>Apache 2</license>
@@ -19,5 +19,4 @@
   <depend>libpcl-all-dev</depend>
   <depend>image_transport</depend>
   <depend>pcl_conversions</depend>
-  <depend>cv_bridge</depend>
 </package>
