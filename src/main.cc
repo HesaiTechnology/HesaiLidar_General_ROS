@@ -32,7 +32,7 @@ public:
 
     hsdk = new PandarGeneralSDK(serverIp, lidarRecvPort, gpsPort, \
         boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2), \
-        NULL, 0, 0, lidarType);
+        NULL, static_cast<int>(startAngle * 100 + 0.5), 0, lidarType);
 
     if (hsdk != NULL) {
         hsdk->Start();
