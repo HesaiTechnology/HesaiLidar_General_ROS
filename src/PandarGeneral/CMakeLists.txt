@@ -29,6 +29,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+    find_package(PCL REQUIRED)
     add_executable(PandarGeneralTest
         test/test.cc
     )

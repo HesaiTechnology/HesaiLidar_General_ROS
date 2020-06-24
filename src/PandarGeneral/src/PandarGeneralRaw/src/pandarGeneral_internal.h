@@ -30,6 +30,7 @@
 #include "pandarGeneral/point_types.h"
 #include "src/input.h"
 #include "src/pandarQT.h"
+#include "src/pandarXT.h"
 
 #define SOB_ANGLE_SIZE (4)
 #define RAW_MEASURE_SIZE (3)
@@ -260,7 +261,7 @@ class PandarGeneral_Internal {
       std::string device_ip, uint16_t lidar_port, uint16_t gps_port,
       boost::function<void(boost::shared_ptr<PPointCloud>, double)>
           pcl_callback,
-      boost::function<void(double)> gps_callback, uint16_t start_angle, int tz,
+      boost::function<void(double)> gps_callback, uint16_t start_angle, int tz,int pcl_type,
       std::string frame_id);
 
   /**
@@ -289,6 +290,8 @@ class PandarGeneral_Internal {
   int ParseL64Data(HS_LIDAR_L64_Packet *packet, const uint8_t *recvbuf, const int len);
   int ParseL20Data(HS_LIDAR_L20_Packet *packet, const uint8_t *recvbuf, const int len);
   int ParseQTData(HS_LIDAR_QT_Packet *packet, const uint8_t *recvbuf, const int len);
+  int ParseXTData(HS_LIDAR_XT_Packet *packet, const uint8_t *recvbuf, const int len);
+
   int ParseGPS(PandarGPS *packet, const uint8_t *recvbuf, const int size);
   void CalcPointXYZIT(Pandar40PPacket *pkt, int blockid,
                       boost::shared_ptr<PPointCloud> cld);
@@ -298,7 +301,10 @@ class PandarGeneral_Internal {
                       boost::shared_ptr<PPointCloud> cld);
   void CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int blockid, char chLaserNumber,
                       boost::shared_ptr<PPointCloud> cld);
+  void CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int blockid, char chLaserNumber,
+                      boost::shared_ptr<PPointCloud> cld);
 
+  void EmitBackMessege(char chLaserNumber, boost::shared_ptr<PPointCloud> cld);
   pthread_mutex_t lidar_lock_;
   sem_t lidar_sem_;
   boost::thread *lidar_recv_thr_;
@@ -331,6 +337,9 @@ class PandarGeneral_Internal {
   float PandarQT_elev_angle_map_[HS_LIDAR_QT_UNIT_NUM];
   float PandarQT_horizatal_azimuth_offset_map_[HS_LIDAR_QT_UNIT_NUM];
 
+  float PandarXT_elev_angle_map_[HS_LIDAR_XT_UNIT_NUM];
+  float PandarXT_horizatal_azimuth_offset_map_[HS_LIDAR_XT_UNIT_NUM];
+
   float block64OffsetSingle_[HS_LIDAR_L64_BLOCK_NUMBER_6];
   float block64OffsetDual_[HS_LIDAR_L64_BLOCK_NUMBER_6];
   float laser64Offset_[HS_LIDAR_L64_UNIT_NUM];
@@ -348,8 +357,13 @@ class PandarGeneral_Internal {
   float blockQTOffsetDual_[HS_LIDAR_QT_BLOCK_NUMBER];
   float laserQTOffset_[HS_LIDAR_QT_UNIT_NUM];
 
+  float blockXTOffsetSingle_[HS_LIDAR_XT_BLOCK_NUMBER];
+  float blockXTOffsetDual_[HS_LIDAR_XT_BLOCK_NUMBER];
+  float laserXTOffset_[HS_LIDAR_XT_UNIT_NUM];
+
   int tz_second_;
   std::string frame_id_;
+  int pcl_type_;
 };
 
 #endif  // SRC_PANDARGENERAL_INTERNAL_H_

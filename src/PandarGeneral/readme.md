@@ -1,6 +1,6 @@
 # Hesai Pandar General SDK
 
-This repository includes the SDK for the PandarQT/Pandar64/Pandar20A/Pandar20B/Pandar40P/Pandar40M LiDAR sensor manufactured by Hesai Technology.
+This repository includes the SDK for the PandarQT/Pandar64/Pandar20A/Pandar20B/Pandar40P/Pandar40M/PandarXT LiDAR sensor manufactured by Hesai Technology.
 
 ## How to Build
 

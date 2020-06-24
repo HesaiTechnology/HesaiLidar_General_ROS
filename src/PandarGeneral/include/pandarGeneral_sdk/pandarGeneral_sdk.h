@@ -49,7 +49,7 @@ class PandarGeneralSDK {
       boost::function<void(boost::shared_ptr<PPointCloud>, double)>
           pcl_callback,
       boost::function<void(double)> gps_callback, uint16_t start_angle,
-      int tz, std::string frame_id);
+      int tz, int pcl_type, std::string frame_id);
   ~PandarGeneralSDK();
 
   /**

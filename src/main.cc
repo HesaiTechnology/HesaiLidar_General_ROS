@@ -22,6 +22,7 @@ public:
     double startAngle;
     string lidarCorrectionFile;  // Get local correction when getting from lidar failed
     string lidarType;
+    int pclDataType;
 
     nh.getParam("server_ip", serverIp);
     nh.getParam("lidar_recv_port", lidarRecvPort);
@@ -29,10 +30,11 @@ public:
     nh.getParam("start_angle", startAngle);
     nh.getParam("lidar_correction_file", lidarCorrectionFile);
     nh.getParam("lidar_type", lidarType);
+    nh.getParam("pcldata_type", pclDataType);
 
     hsdk = new PandarGeneralSDK(serverIp, lidarRecvPort, gpsPort, \
         boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2), \
-        NULL, static_cast<int>(startAngle * 100 + 0.5), 0, lidarType);
+        NULL, static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType);
 
     if (hsdk != NULL) {
         hsdk->Start();

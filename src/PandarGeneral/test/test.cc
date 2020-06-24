@@ -27,7 +27,7 @@ void lidarCallback(boost::shared_ptr<PPointCloud> cld, double timestamp) {
 
 int main(int argc, char** argv) {
   PandarGeneralSDK pandarGeneral(std::string("192.168.1.201"), 2368, 10110, \
-      lidarCallback, gpsCallback, 0, 0, std::string("Pandar"));
+      lidarCallback, gpsCallback, 0, 0, 1, std::string("Pandar"));
 
   pandarGeneral.Start();
 

@@ -51,11 +51,11 @@ PandarGeneralSDK::PandarGeneralSDK(
     boost::function<void(boost::shared_ptr<PPointCloud>, double)>
         pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle,
-    int tz, std::string frame_id) {
+    int tz, int pcl_type, std::string frame_id) {
   pandarGeneral_ = NULL;
 
   pandarGeneral_ = new PandarGeneral(device_ip, lidar_port,
-            gps_port, pcl_callback, gps_callback, start_angle, tz, frame_id);
+            gps_port, pcl_callback, gps_callback, start_angle, tz, pcl_type, frame_id);
 
   tcp_command_client_ =
       TcpCommandClientNew(device_ip.c_str(), PANDARGENERALSDK_TCP_COMMAND_PORT);
