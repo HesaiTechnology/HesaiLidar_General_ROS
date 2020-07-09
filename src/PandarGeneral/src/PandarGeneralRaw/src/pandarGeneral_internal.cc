@@ -1376,9 +1376,7 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
   HS_LIDAR_QT_Block *block = &pkt->blocks[blockid];
 
   struct tm tTm;
-  // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
-  // and mktime's year start from 1900 which is 0. so we need add 100 year.
-  tTm.tm_year = pkt->addtime[0] + 100;
+  tTm.tm_year = pkt->addtime[0];
   // UTC's month start from 1, but mktime only accept month from 0.
   tTm.tm_mon = pkt->addtime[1] - 1;
   tTm.tm_mday = pkt->addtime[2];
@@ -1442,9 +1440,7 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
   HS_LIDAR_XT_Block *block = &pkt->blocks[blockid];
 
   struct tm tTm;
-  // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
-  // and mktime's year start from 1900 which is 0. so we need add 100 year.
-  tTm.tm_year = pkt->addtime[0] + 100;
+  tTm.tm_year = pkt->addtime[0];
   // UTC's month start from 1, but mktime only accept month from 0.
   tTm.tm_mon = pkt->addtime[1] - 1;
   tTm.tm_mday = pkt->addtime[2];
