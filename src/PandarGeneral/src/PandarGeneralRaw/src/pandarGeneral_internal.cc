@@ -846,13 +846,19 @@ int PandarGeneral_Internal::ParseRawData(Pandar40PPacket *packet,
 
   // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
   // and mktime's year start from 1900 which is 0. so we need add 100 year.
-  packet->t.tm_year = (buf[index + 0] & 0xff) + 100;
+  packet->t.tm_year = (buf[index+0] & 0xff) + 100;
+
+  // in case of time error
+  if (packet->t.tm_year >= 200) {
+    packet->t.tm_year -= 100;
+  }
+
   // UTC's month start from 1, but mktime only accept month from 0.
-  packet->t.tm_mon = (buf[index + 1] & 0xff) - 1;
-  packet->t.tm_mday = buf[index + 2] & 0xff;
-  packet->t.tm_hour = buf[index + 3] & 0xff;
-  packet->t.tm_min = buf[index + 4] & 0xff;
-  packet->t.tm_sec = buf[index + 5] & 0xff;
+  packet->t.tm_mon = (buf[index+1] & 0xff) - 1;
+  packet->t.tm_mday = buf[index+2] & 0xff;
+  packet->t.tm_hour = buf[index+3] & 0xff;
+  packet->t.tm_min = buf[index+4] & 0xff;
+  packet->t.tm_sec = buf[index+5] & 0xff;
   packet->t.tm_isdst = 0;
 
   return 0;
@@ -916,11 +922,11 @@ int PandarGeneral_Internal::ParseL64Data(HS_LIDAR_L64_Packet *packet,
   index += HS_LIDAR_L64_FACTORY_SIZE;
     
   packet->addtime[0] = recvbuf[index]& 0xff;
-  packet->addtime[1] = recvbuf[index + 1]& 0xff;
-  packet->addtime[2] = recvbuf[index + 2]& 0xff;
-  packet->addtime[3] = recvbuf[index + 3]& 0xff;
-  packet->addtime[4] = recvbuf[index + 4]& 0xff;
-  packet->addtime[5] = recvbuf[index + 5]& 0xff;
+  packet->addtime[1] = recvbuf[index+1]& 0xff;
+  packet->addtime[2] = recvbuf[index+2]& 0xff;
+  packet->addtime[3] = recvbuf[index+3]& 0xff;
+  packet->addtime[4] = recvbuf[index+4]& 0xff;
+  packet->addtime[5] = recvbuf[index+5]& 0xff;
 
   index += HS_LIDAR_TIME_SIZE;
 
@@ -1055,11 +1061,11 @@ int PandarGeneral_Internal::ParseQTData(HS_LIDAR_QT_Packet *packet,
   index += HS_LIDAR_QT_FACTORY_SIZE;
     
   packet->addtime[0] = recvbuf[index]& 0xff;
-  packet->addtime[1] = recvbuf[index + 1]& 0xff;
-  packet->addtime[2] = recvbuf[index + 2]& 0xff;
-  packet->addtime[3] = recvbuf[index + 3]& 0xff;
-  packet->addtime[4] = recvbuf[index + 4]& 0xff;
-  packet->addtime[5] = recvbuf[index + 5]& 0xff;
+  packet->addtime[1] = recvbuf[index+1]& 0xff;
+  packet->addtime[2] = recvbuf[index+2]& 0xff;
+  packet->addtime[3] = recvbuf[index+3]& 0xff;
+  packet->addtime[4] = recvbuf[index+4]& 0xff;
+  packet->addtime[5] = recvbuf[index+5]& 0xff;
 
   index += HS_LIDAR_TIME_SIZE;
 
@@ -1123,11 +1129,11 @@ int PandarGeneral_Internal::ParseXTData(HS_LIDAR_XT_Packet *packet,
   index += HS_LIDAR_XT_FACTORY_SIZE;
     
   packet->addtime[0] = recvbuf[index]& 0xff;
-  packet->addtime[1] = recvbuf[index + 1]& 0xff;
-  packet->addtime[2] = recvbuf[index + 2]& 0xff;
-  packet->addtime[3] = recvbuf[index + 3]& 0xff;
-  packet->addtime[4] = recvbuf[index + 4]& 0xff;
-  packet->addtime[5] = recvbuf[index + 5]& 0xff;
+  packet->addtime[1] = recvbuf[index+1]& 0xff;
+  packet->addtime[2] = recvbuf[index+2]& 0xff;
+  packet->addtime[3] = recvbuf[index+3]& 0xff;
+  packet->addtime[4] = recvbuf[index+4]& 0xff;
+  packet->addtime[5] = recvbuf[index+5]& 0xff;
 
   index += HS_LIDAR_TIME_SIZE;
 
@@ -1231,6 +1237,12 @@ void PandarGeneral_Internal::CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blo
   // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
   // and mktime's year start from 1900 which is 0. so we need add 100 year.
   tTm.tm_year = pkt->addtime[0] + 100;
+
+  // in case of time error
+  if (packet->t.tm_year >= 200) {
+    packet->t.tm_year -= 100;
+  }
+
   // UTC's month start from 1, but mktime only accept month from 0.
   tTm.tm_mon = pkt->addtime[1] - 1;
   tTm.tm_mday = pkt->addtime[2];
@@ -1300,6 +1312,12 @@ void PandarGeneral_Internal::CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blo
   // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
   // and mktime's year start from 1900 which is 0. so we need add 100 year.
   tTm.tm_year = pkt->addtime[0] + 100;
+
+  // in case of time error
+  if (packet->t.tm_year >= 200) {
+    packet->t.tm_year -= 100;
+  }
+
   // UTC's month start from 1, but mktime only accept month from 0.
   tTm.tm_mon = pkt->addtime[1] - 1;
   tTm.tm_mday = pkt->addtime[2];
@@ -1376,7 +1394,13 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
   HS_LIDAR_QT_Block *block = &pkt->blocks[blockid];
 
   struct tm tTm;
-  tTm.tm_year = pkt->addtime[0];
+  tTm.tm_year = pkt->addtime[0] + 100;
+
+  // in case of time error
+  if (packet->t.tm_year >= 200) {
+    packet->t.tm_year -= 100;
+  }
+
   // UTC's month start from 1, but mktime only accept month from 0.
   tTm.tm_mon = pkt->addtime[1] - 1;
   tTm.tm_mday = pkt->addtime[2];
@@ -1440,7 +1464,13 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
   HS_LIDAR_XT_Block *block = &pkt->blocks[blockid];
 
   struct tm tTm;
-  tTm.tm_year = pkt->addtime[0];
+  tTm.tm_year = pkt->addtime[0] + 100;
+
+  // in case of time error
+  if (packet->t.tm_year >= 200) {
+    packet->t.tm_year -= 100;
+  }
+
   // UTC's month start from 1, but mktime only accept month from 0.
   tTm.tm_mon = pkt->addtime[1] - 1;
   tTm.tm_mday = pkt->addtime[2];
