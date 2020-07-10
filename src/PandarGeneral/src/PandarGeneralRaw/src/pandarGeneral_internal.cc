@@ -1239,8 +1239,8 @@ void PandarGeneral_Internal::CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blo
   tTm.tm_year = pkt->addtime[0] + 100;
 
   // in case of time error
-  if (packet->t.tm_year >= 200) {
-    packet->t.tm_year -= 100;
+  if (tTm.tm_year >= 200) {
+    tTm.tm_year -= 100;
   }
 
   // UTC's month start from 1, but mktime only accept month from 0.
@@ -1314,8 +1314,8 @@ void PandarGeneral_Internal::CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blo
   tTm.tm_year = pkt->addtime[0] + 100;
 
   // in case of time error
-  if (packet->t.tm_year >= 200) {
-    packet->t.tm_year -= 100;
+  if (tTm.tm_year >= 200) {
+    tTm.tm_year -= 100;
   }
 
   // UTC's month start from 1, but mktime only accept month from 0.
@@ -1397,8 +1397,8 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
   tTm.tm_year = pkt->addtime[0] + 100;
 
   // in case of time error
-  if (packet->t.tm_year >= 200) {
-    packet->t.tm_year -= 100;
+  if (tTm.tm_year >= 200) {
+    tTm.tm_year -= 100;
   }
 
   // UTC's month start from 1, but mktime only accept month from 0.
@@ -1467,8 +1467,8 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
   tTm.tm_year = pkt->addtime[0] + 100;
 
   // in case of time error
-  if (packet->t.tm_year >= 200) {
-    packet->t.tm_year -= 100;
+  if (tTm.tm_year >= 200) {
+    tTm.tm_year -= 100;
   }
 
   // UTC's month start from 1, but mktime only accept month from 0.
