@@ -132,6 +132,8 @@ HS_LIDAR_L64_7_BLOCK_PACKET_BODY_SIZE + HS_LIDAR_L64_PACKET_TAIL_WITHOUT_UDPSEQ_
 #define HesaiLidarSDK_DEFAULT_LIDAR_RECV_PORT 8080
 #define HesaiLidarSDK_DEFAULT_GPS_RECV_PORT 10110
 
+#define MAX_LASER_NUM (256)
+
 struct Pandar40PUnit_s {
   uint8_t intensity;
   double distance;
@@ -328,8 +330,8 @@ class PandarGeneral_Internal {
   float elev_angle_map_[LASER_COUNT];
   float horizatal_azimuth_offset_map_[LASER_COUNT];
 
-  float General_elev_angle_map_[HS_LIDAR_L64_UNIT_NUM];
-  float General_horizatal_azimuth_offset_map_[HS_LIDAR_L64_UNIT_NUM];
+  float General_elev_angle_map_[MAX_LASER_NUM];
+  float General_horizatal_azimuth_offset_map_[MAX_LASER_NUM];
 
   float Pandar20_elev_angle_map_[HS_LIDAR_L20_UNIT_NUM];
   float Pandar20_horizatal_azimuth_offset_map_[HS_LIDAR_L20_UNIT_NUM];
