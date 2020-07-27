@@ -5,7 +5,7 @@
 This repository includes the ROS Driver for the PandarQT/Pandar64/Pandar40P/Pandar20A/Pandar20B/Pandar40M/PandarXT LiDAR sensor manufactured by Hesai Technology.
 
 
-## How to Build
+## Build
 
 ### Install `catkin_tools`
 
@@ -34,7 +34,7 @@ $ catkin config --install
 $ catkin build --force-cmake
 ```
 
-## How to Launch
+## Run
 
 1. While in the `rosworkspace` directory.
 ```
