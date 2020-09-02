@@ -39,6 +39,7 @@ target_include_directories(PandarGeneral PRIVATE
 target_link_libraries(PandarGeneral
     ${Boost_LIBRARIES}
     ${PCL_IO_LIBRARIES}
+    pcap
 )
 
 ###PandarGeneralSDK
@@ -63,6 +64,7 @@ target_link_libraries(PandarGeneralSDK
     ${PCL_IO_LIBRARIES}
     ${YAML_CPP_LIBRARIES}
     ${catkin_LIBRARIES}
+    pcap
 )
 
 ###hesai node
