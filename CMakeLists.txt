@@ -25,13 +25,13 @@ catkin_package()
 
 ###PandarGeneralRaw
 add_library(PandarGeneral
-    src/PandarGeneral/src/PandarGeneralRaw/src/input.cc
-    src/PandarGeneral/src/PandarGeneralRaw/src/pandarGeneral_internal.cc
-    src/PandarGeneral/src/PandarGeneralRaw/src/pandarGeneral.cc
+    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/input.cc
+    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral_internal.cc
+    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral.cc
 )
 target_include_directories(PandarGeneral PRIVATE
-    src/PandarGeneral/src/PandarGeneralRaw/include
-    src/PandarGeneral/src/PandarGeneralRaw/
+    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
+    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/
     ${Boost_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
@@ -43,14 +43,14 @@ target_link_libraries(PandarGeneral
 
 ###PandarGeneralSDK
 add_library(PandarGeneralSDK SHARED
-    src/PandarGeneral/src/pandarGeneral_sdk.cc
-    src/PandarGeneral/src/tcp_command_client.c
-    src/PandarGeneral/src/util.c
+    src/HesaiLidar_General_SDK/src/pandarGeneral_sdk.cc
+    src/HesaiLidar_General_SDK/src/tcp_command_client.c
+    src/HesaiLidar_General_SDK/src/util.c
 )
 target_include_directories(PandarGeneralSDK PRIVATE
-    src/PandarGeneral/
-    src/PandarGeneral/include/
-    src/PandarGeneral/src/PandarGeneralRaw/include
+    src/HesaiLidar_General_SDK/
+    src/HesaiLidar_General_SDK/include/
+    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
     ${Boost_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS}
     ${YAML_CPP_INCLUDE_DIRS}
@@ -71,8 +71,8 @@ add_executable(hesai_lidar_node
 )
 
 target_include_directories(hesai_lidar_node PRIVATE
-    src/PandarGeneral/include
-    src/PandarGeneral/src/PandarGeneralRaw/include
+    src/HesaiLidar_General_SDK/include
+    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
     ${PCL_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
