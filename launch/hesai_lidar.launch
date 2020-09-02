@@ -1,4 +1,5 @@
 <launch>
+	<arg name="pcap_file"  default=""/>
 	<arg name="server_ip" default="192.168.1.201"/>
 	<arg name="lidar_recv_port"  default="2368"/>
 	<arg name="gps_port"  default="10110"/>
@@ -8,6 +9,7 @@
 	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/correction.csv"/>
 
 	<node pkg="hesai_lidar" name="hesai_lidar" type="hesai_lidar_node" output="screen" >
+		<param name="pcap_file" type="string" value="$(arg pcap_file)"/>
 		<param name="server_ip" type="string" value="$(arg server_ip)"/>
 		<param name="lidar_recv_port"  type="int" value="$(arg lidar_recv_port)"/>
 		<param name="gps_port"  type="int" value="$(arg gps_port)"/>
@@ -17,4 +19,3 @@
 		<param name="lidar_correction_file"  type="string" value="$(arg lidar_correction_file)"/>
 	</node>
 </launch>
-

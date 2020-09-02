@@ -22,7 +22,9 @@ public:
     string lidarCorrectionFile;  // Get local correction when getting from lidar failed
     string lidarType;
     int pclDataType;
+    string pcapFile;
 
+    nh.getParam("pcap_file", pcapFile);
     nh.getParam("server_ip", serverIp);
     nh.getParam("lidar_recv_port", lidarRecvPort);
     nh.getParam("gps_port", gpsPort);
@@ -31,10 +33,29 @@ public:
     nh.getParam("lidar_type", lidarType);
     nh.getParam("pcldata_type", pclDataType);
 
-    hsdk = new PandarGeneralSDK(serverIp, lidarRecvPort, gpsPort, \
+    if(!pcapFile.empty()){
+      hsdk = new PandarGeneralSDK(pcapFile, boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2), \
+      static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType);
+      if (hsdk != NULL) {
+        ifstream fin(lidarCorrectionFile);
+        int length = 0;
+        std::string strlidarCalibration;
+        fin.seekg(0, std::ios::end);
+        length = fin.tellg();
+        fin.seekg(0, std::ios::beg);
+        char *buffer = new char[length];
+        fin.read(buffer, length);
+        fin.close();
+        strlidarCalibration = buffer;
+        hsdk->LoadLidarCorrectionFile(strlidarCalibration);
+      }
+    }
+    else {
+      hsdk = new PandarGeneralSDK(serverIp, lidarRecvPort, gpsPort, \
         boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2), \
         NULL, static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType);
-
+    }
+    
     if (hsdk != NULL) {
         hsdk->Start();
         // hsdk->LoadLidarCorrectionFile("...");  // parameter is stream in lidarCorrectionFile
