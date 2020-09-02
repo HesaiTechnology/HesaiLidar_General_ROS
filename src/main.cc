@@ -49,6 +49,7 @@ public:
     sensor_msgs::PointCloud2 output;
     pcl::toROSMsg(*cld, output);
     lidarPublisher.publish(output);
+    printf("Parsing Packets and Publishing: %f.\n");
   }
 
 private:

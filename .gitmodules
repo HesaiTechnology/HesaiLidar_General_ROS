@@ -1,0 +1,3 @@
+[submodule "src/HesaiLidar_General_SDK"]
+	path = src/HesaiLidar_General_SDK
+	url = https://github.com/HesaiTechnology/HesaiLidar_General_SDK
