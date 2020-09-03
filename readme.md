@@ -34,6 +34,29 @@ $ catkin config --install
 $ catkin build --force-cmake
 ```
 
+
+## Config
+```
+ $ cd rosworkspace/install/share/hesai_lidar/launch
+```
+open hesai_lidar.launch 
+### Reciving data sent from connected Lidar:config lidar ip and port, leave the pcap_file empty
+|Parameter | Default Value|
+|---------|---------------|
+|server_ip |192.168.1.201|
+|lidar_recv_port |2368|
+|gps_recv_port  |10110|
+|pcap_file ||
+Data source will come from Lidar when "pcap_file" set to empty
+### Reciving data sent from connected Lidar: config pcap_file and correction file path
+|Parameter | Value|
+|---------|---------------|
+|pcap_file |pcap file path|
+|lidar_correction_file |lidar correction file path
+
+Data source will be changed to read from pcap once "pcap_file" not empty 
+
+
 ## Run
 
 1. While in the `rosworkspace` directory.
@@ -59,15 +82,4 @@ $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT"
 /pandar
 ```
 3. Open Rviz and add display by topic.
-4. Change fixed frame to lidar_type.
-
-LiDAR default IP address is 192.168.1.201
-
-## Some of the available parameters in the Launch file
-
-|Parameter | Default Value|
-|---------|---------------|
-|lidar_recv_port |2368|
-|gps_recv_port  |10110|
-|start_angle |0|
-
+4. Change fixed frame to lidar_type to view published point clouds.
