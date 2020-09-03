@@ -47,12 +47,14 @@ open hesai_lidar.launch
 |lidar_recv_port |2368|
 |gps_recv_port  |10110|
 |pcap_file ||
-Data source will come from Lidar when "pcap_file" set to empty
+
+Data source will be from Lidar when "pcap_file" set to empty
+
 ### Reciving data sent from connected Lidar: config pcap_file and correction file path
 |Parameter | Value|
 |---------|---------------|
 |pcap_file |pcap file path|
-|lidar_correction_file |lidar correction file path
+|lidar_correction_file |lidar correction file path|
 
 Data source will be changed to read from pcap once "pcap_file" not empty 
 
