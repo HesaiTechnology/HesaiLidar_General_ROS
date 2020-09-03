@@ -40,7 +40,7 @@ $ catkin build --force-cmake
  $ cd rosworkspace/install/share/hesai_lidar/launch
 ```
 open hesai_lidar.launch to set configuration parameters
-### Reciving data from connected Lidar:config lidar ip and port, leave the pcap_file empty
+### Reciving data from connected Lidar: config lidar ip&port, leave the pcap_file empty
 |Parameter | Default Value|
 |---------|---------------|
 |server_ip |192.168.1.201|
