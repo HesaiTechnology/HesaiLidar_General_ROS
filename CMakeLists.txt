@@ -27,6 +27,7 @@ catkin_package()
 add_library(PandarGeneral
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/input.cc
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral_internal.cc
+    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pcap_reader.cpp
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral.cc
 )
 target_include_directories(PandarGeneral PRIVATE
