@@ -76,8 +76,10 @@ for Pandar40P
 $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40P"
 for Pandar40M
 $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40M"
-for PandarXT
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT"
+for PandarXT-32
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-32"
+for PandarXT-16
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-16"
 ```
 2. The driver will publish a PointCloud message in the topic.
 ```
