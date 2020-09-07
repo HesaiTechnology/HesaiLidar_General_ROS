@@ -1135,6 +1135,7 @@ int PandarGeneral_Internal::ParseXTData(HS_LIDAR_XT_Packet *packet,
         len << std::endl;
     return -1;
   }
+ 
 
   int index = 0;
   int block = 0;
@@ -1172,18 +1173,12 @@ int PandarGeneral_Internal::ParseXTData(HS_LIDAR_XT_Packet *packet,
   }
 
   index += HS_LIDAR_XT_RESERVED_SIZE; // skip reserved bytes
-  index += HS_LIDAR_XT_ENGINE_VELOCITY;
-
-  packet->timestamp = (recvbuf[index] & 0xff)| (recvbuf[index+1] & 0xff) << 8 | \
-      ((recvbuf[index+2] & 0xff) << 16) | ((recvbuf[index+3] & 0xff) << 24);
-    // printf("timestamp %u \n", packet->timestamp);
-  index += HS_LIDAR_XT_TIMESTAMP_SIZE;
 
   packet->echo = recvbuf[index]& 0xff;
 
   index += HS_LIDAR_XT_ECHO_SIZE;
-  index += HS_LIDAR_XT_FACTORY_SIZE;
-    
+  index += HS_LIDAR_XT_ENGINE_VELOCITY;
+
   packet->addtime[0] = recvbuf[index]& 0xff;
   packet->addtime[1] = recvbuf[index+1]& 0xff;
   packet->addtime[2] = recvbuf[index+2]& 0xff;
@@ -1191,8 +1186,11 @@ int PandarGeneral_Internal::ParseXTData(HS_LIDAR_XT_Packet *packet,
   packet->addtime[4] = recvbuf[index+4]& 0xff;
   packet->addtime[5] = recvbuf[index+5]& 0xff;
 
-  index += HS_LIDAR_TIME_SIZE;
+  index += HS_LIDAR_XT_UTC_SIZE;
 
+  packet->timestamp = (recvbuf[index] & 0xff)| (recvbuf[index+1] & 0xff) << 8 | \
+      ((recvbuf[index+2] & 0xff) << 16) | ((recvbuf[index+3] & 0xff) << 24);
+    // printf("timestamp %u \n", packet->timestamp);
   return 0;
 }
 
