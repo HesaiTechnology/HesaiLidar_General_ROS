@@ -7,7 +7,7 @@ HesaiLidar_General_ROS project includes the ROS Driver for：
 **PandarQT/Pandar64/Pandar40P/Pandar20A/Pandar20B/Pandar40M/PandarXT**  
 LiDAR sensor manufactured by Hesai Technology.  
 
-Developed based on [HesaiLidar_General_SDK](https://github.com/HesaiTechnology/HesaiLidar_General_SDK), After launched, the project will monitor UDP packets from Lidar,     parse data and publish point cloud frames into ROS under topic: ```/pandar```. It can be also used as an official demo showing how to work with HesaiLidar_General_SDK.
+Developed based on [HesaiLidar_General_SDK](https://github.com/HesaiTechnology/HesaiLidar_General_SDK), After launched, the project will monitor UDP packets from Lidar,     parse data and publish point cloud frames into ROS under topic: ```/pandar```. It can also be used as an official demo showing how to work with HesaiLidar_General_SDK.
 
 ## Environment and Dependencies
 **System environment requirement: Linux + ROS**  
