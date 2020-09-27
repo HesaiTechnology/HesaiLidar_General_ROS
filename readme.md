@@ -55,6 +55,7 @@ $ catkin build --force-cmake
 |pcap_file ||　　
 
 Data source will be from connected Lidar when "pcap_file" set to empty
+Make sure parameters above set to the same with Lidar setting
 
 **Reciving data from pcap file: config pcap_file and correction file path**
 |Parameter | Value|
