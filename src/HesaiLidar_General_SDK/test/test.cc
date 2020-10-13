@@ -21,18 +21,28 @@ void gpsCallback(int timestamp) {
 }
 
 void lidarCallback(boost::shared_ptr<PPointCloud> cld, double timestamp) {
-  printf("Frame timestamp: %lf,", timestamp);
-  printf("point_size: %ld,",cld->points.size());
+  printf("Frame timestamp: %lf,\n", timestamp);
+  printf("point_size: %ld,\n",cld->points.size());
 }
 
 int main(int argc, char** argv) {
   // PandarGeneralSDK pandarGeneral(std::string("192.168.1.201"), 2368, 10110, \
   //     lidarCallback, gpsCallback, 0, 0, 1, std::string("Pandar40P"));
 
-      PandarGeneralSDK pandarGeneral(std::string("/home/fanglinwen/my_project/Pandar128SDK/Crowded_Crossing_Pandar40P.pcap"), \
-      lidarCallback, 0, 0, 1, std::string("Pandar40P"));
-
-      
+  PandarGeneralSDK pandarGeneral(std::string("/path/to/pcapFile"), \
+  lidarCallback, 0, 0, 1, std::string("PandarXT-16"));
+  std::string filePath = "/path/to/correctionFile";
+  std::ifstream fin(filePath);
+  int length = 0;
+  std::string strlidarCalibration;
+  fin.seekg(0, std::ios::end);
+  length = fin.tellg();
+  fin.seekg(0, std::ios::beg);
+  char *buffer = new char[length];
+  fin.read(buffer, length);
+  fin.close();
+  strlidarCalibration = buffer;
+  pandarGeneral.LoadLidarCorrectionFile(strlidarCalibration);
 
   pandarGeneral.Start();
 

@@ -431,8 +431,8 @@ void PandarGeneral_Internal::Init() {
 
   if (frame_id_ == "Pandar40P" || frame_id_ == "Pandar40M") {
     for (int i = 0; i < LASER_COUNT; i++) {
-      elev_angle_map_[i] = pandar40p_elev_angle_map[i];
-      horizatal_azimuth_offset_map_[i] = \
+      General_elev_angle_map_[i] = pandar40p_elev_angle_map[i];
+      General_horizatal_azimuth_offset_map_[i] = \
           pandar40p_horizatal_azimuth_offset_map[i];
     }
   }
