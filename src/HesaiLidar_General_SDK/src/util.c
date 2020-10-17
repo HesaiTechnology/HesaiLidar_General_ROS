@@ -144,3 +144,13 @@ int select_fd(int fd, int timeout, int wait_for) {
 
   return result;
 }
+double getNowTimeSec() {
+   struct timespec ts;
+    double time;
+    if (clock_gettime(CLOCK_REALTIME, &ts) == 0) {
+      return ts.tv_nsec / 1000000000.0 + ts.tv_sec;
+    }
+    else{
+      return 0;
+    }  
+}

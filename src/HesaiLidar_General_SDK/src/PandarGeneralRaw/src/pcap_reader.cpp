@@ -5,6 +5,7 @@
 #include "pcap_reader.h"
 #include "log.h"
 #include <map>
+#include "../util.h"
 
 #define PKT_HEADER_SIZE (42)
 
@@ -41,7 +42,7 @@ void PcapReader::initTimeIndexMap() {
   m_timeIndexMap.insert(std::pair<string,std::pair<int,int>>("PandarXT-16", std::pair<int,int>(559,553)));
 }
 
-void PcapReader::start(boost::function<void(const uint8_t*, const int)> callback) {
+void PcapReader::start(boost::function<void(const uint8_t*, const int, double timestamp)> callback) {
   // LOG_FUNC();
   stop();
 
@@ -76,6 +77,8 @@ void PcapReader::parsePcap() {
   int64_t current_time;
   int64_t pkt_ts = 0;
 
+  if(pcapPath.empty()){return;}
+
   pcapFile = pcap_open_offline(pcapPath.c_str(), pcapBuf);
 
   if (NULL == pcapFile) {
@@ -100,7 +103,9 @@ void PcapReader::parsePcap() {
   while (pcap_next_ex(pcapFile, &pktHeader, &packetBuf) >= 0 && loop) {
     const uint8_t *packet = packetBuf + PKT_HEADER_SIZE;
     int pktSize = pktHeader->len - PKT_HEADER_SIZE;
-    callback(packet, pktSize);
+    double time = getNowTimeSec();
+    // printf("Real time: %lf\n",time);
+    callback(packet, pktSize, time);
     count++;
 
     if (count >= gap && m_iUTCIndex != 0) {

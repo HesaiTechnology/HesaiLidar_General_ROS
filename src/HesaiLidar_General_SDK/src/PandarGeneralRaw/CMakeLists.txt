@@ -20,7 +20,7 @@ add_library( ${PROJECT_NAME}
 	src/input.cc
 	src/pandarGeneral_internal.cc
 	src/pandarGeneral.cc
-        src/pcap_reader.cpp
+    src/pcap_reader.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

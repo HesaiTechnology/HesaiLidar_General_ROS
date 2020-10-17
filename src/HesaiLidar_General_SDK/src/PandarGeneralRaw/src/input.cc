@@ -24,6 +24,8 @@
 #include <sys/time.h>
 #include <iostream>
 #include <sstream>
+#include <time.h>
+#include "../util.h"
 
 #include "src/input.h"
 #include "log.h"
@@ -126,6 +128,8 @@ int Input::getPacket(PandarPacket *pkt) {
 
   senderAddressLen = sizeof(senderAddress);
   ssize_t nbytes;
+  double time = getNowTimeSec();
+  // printf("Real time: %lf\n",time);
   for (int i = 0; i != socketNumber; ++i) {
     if (fds[i].revents & POLLIN) {
       nbytes = recvfrom(fds[i].fd, &pkt->data[0], ETHERNET_MTU, 0,
@@ -142,6 +146,7 @@ int Input::getPacket(PandarPacket *pkt) {
     }
   }
   pkt->size = nbytes;
+  pkt->stamp = time;
 
   return 0;
 }
