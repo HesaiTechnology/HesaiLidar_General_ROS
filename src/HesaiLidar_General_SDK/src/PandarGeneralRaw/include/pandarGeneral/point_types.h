@@ -21,7 +21,7 @@
 
 struct PointXYZIT {
   PCL_ADD_POINT4D   //添加pcl里xyz
-  uint8_t intensity;
+  float intensity;
   double timestamp;
   uint16_t ring;                   ///< laser ring number
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW  // make sure our new allocators are aligned,确保定义新类型点云内存与SSE对齐
@@ -29,7 +29,7 @@ struct PointXYZIT {
 
 POINT_CLOUD_REGISTER_POINT_STRUCT(
     PointXYZIT,
-    (float, x, x)(float, y, y)(float, z, z)(uint8_t, intensity, intensity)(
+    (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)(
         double, timestamp, timestamp)(uint16_t, ring, ring))
 
 typedef PointXYZIT PPoint;
