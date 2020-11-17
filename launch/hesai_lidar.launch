@@ -1,0 +1,27 @@
+<launch>
+	<arg name="pcap_file"  default=""/>
+	<arg name="server_ip" default="192.168.1.201"/>
+	<arg name="lidar_recv_port"  default="2368"/>
+	<arg name="gps_port"  default="10110"/>
+	<arg name="start_angle"  default="0"/>
+	<arg name="lidar_type" default=""/>
+	<arg name="pcldata_type" default="0"/>
+	<arg name="publish_type" default="points"/>
+	<arg name="timestamp_type" default=""/>
+	<arg name="data_type" default=""/>
+	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/correction.csv"/>
+
+	<node pkg="hesai_lidar" name="hesai_lidar" type="hesai_lidar_node" output="screen" >
+		<param name="pcap_file" type="string" value="$(arg pcap_file)"/>
+		<param name="server_ip" type="string" value="$(arg server_ip)"/>
+		<param name="lidar_recv_port"  type="int" value="$(arg lidar_recv_port)"/>
+		<param name="gps_port"  type="int" value="$(arg gps_port)"/>
+		<param name="start_angle"  type="double" value="$(arg start_angle)"/>
+		<param name="lidar_type"  type="string" value="$(arg lidar_type)"/>
+		<param name="pcldata_type"  type="int" value="$(arg pcldata_type)"/>
+		<param name="publish_type"  type="string" value="$(arg publish_type)"/>
+		<param name="timestamp_type"  type="string" value="$(arg timestamp_type)"/>
+		<param name="data_type"  type="string" value="$(arg data_type)"/>
+		<param name="lidar_correction_file"  type="string" value="$(arg lidar_correction_file)"/>
+	</node>
+</launch>
