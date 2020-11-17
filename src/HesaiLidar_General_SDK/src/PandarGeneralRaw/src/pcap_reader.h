@@ -1,0 +1,44 @@
+/******************************************************************************
+ * Copyright 2019 The Hesai Technology Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *****************************************************************************/
+
+#include <boost/function.hpp>
+#include <boost/thread.hpp>
+#include "pcap.h"
+#include <string>
+
+using namespace std;
+
+class PcapReader {
+public:
+  PcapReader(std::string path, std::string frame_id);
+  ~PcapReader();
+
+  void start(boost::function<void(const uint8_t*, const int, double timestamp)> callback);
+  void stop();
+
+private:
+  bool          loop;
+  boost::thread *parse_thr_;
+  std::string   pcapPath;
+  std::string   m_sFrameId;
+  boost::function<void(const uint8_t*, const int, double timestamp)> callback; 
+  std::map<std::string, std::pair<int,int>> m_timeIndexMap;
+  int m_iTsIndex;
+  int m_iUTCIndex;
+
+  void parsePcap();
+  void initTimeIndexMap();
+};
