@@ -93,3 +93,43 @@ $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-16"
 2. The driver will publish PointCloud messages to the topic `/pandar`  
 3. Open Rviz and add display by topic  
 4. Change fixed frame to lidar_type to view published point clouds  
+
+## Details of launch file parameters and utilities
+|Parameter | Default Value|
+|---------|---------------|
+|pcap_file|Path of the pcap file, once not empty, driver will get data from pcap file instead of a connected Lidar|
+|server_ip|The IP address of connected Lidar, will be used to get calibration file|
+|lidar_recv_port|The destination port of Lidar, driver will monitor this port to get point cloud packets from Lidar|
+|gps_port|The destination port for Lidar GPS packets, driver will monitor this port to get GPS packets from Lidar|
+|start_angle|Driver will publish one frame point cloud data when azimuth angel step over start_angle, make sure set to within FOV|
+|lidar_type|Lidar module type, will be used also as frame id|
+|pcldata_type|0:mixed point cloud data type  1:structured point cloud data type|
+|publish_type|default "points":publish point clouds "raw":publish raw UDP packets "both":publish point clouds and UDP packets|
+|timestamp_type|default "": use timestamp from Lidar "realtime" use timestamp from the system  driver running on|
+|data_type|default "":driver will get point cloud packets from Lidar or PCAP "rosbag":driver will subscribe toic /pandar_packets to get point cloud packets|
+|lidar_correction_file|Path of correction file, will be used when not able to get correction file from a connected Liar|
+### Publish raw UDP packets to ROS
+set "publish_model" to "raw" or "both" then launch driver    
+The driver will publish a raw data packet message in the topic
+```
+/pandar_packets
+```
+### Record and parse raw UDP packets from ROS topic
+1. record raw data rosbag
+```
+$rosbag record -b 4096 /pandar_packets
+```
+2. stop rosbag record by "Ctrl + C", a rosbag file will be generated in the terminal working path
+
+3. play raw data rosbag
+`
+$rosbag play <rosbagfile>
+`
+    this will publish raw udp packets to ROS under the topic `/pandar_packets`    
+4. set "data_type" in launch file to "rosbag", set correct "lidar_type", launch driver
+```
+$ roslaunch hesai_lidar hesai_lidar.launch
+```
+5. Driver will get data from the `/pandar_packets` topic, parse and publish point cloud to `/pandar_points`, open Rviz and add display by topic.
+6. Change fixed frame to lidar_type to view published point clouds
+
