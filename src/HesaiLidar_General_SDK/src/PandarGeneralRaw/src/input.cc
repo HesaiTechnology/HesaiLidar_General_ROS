@@ -68,6 +68,12 @@ Input::Input(uint16_t port, uint16_t gpsPort) {
     return;
   }
 
+  int reuse = 1;
+  int set_error = setsockopt(socketForGPS, SOL_SOCKET, SO_REUSEPORT, (const void *)&reuse, sizeof(int));
+  if(set_error < 0) {
+    perror("setsockopt");
+  }
+
   sockaddr_in myAddressGPS;                        // my address information
   memset(&myAddressGPS, 0, sizeof(myAddressGPS));  // initialize to zeros
   myAddressGPS.sin_family = AF_INET;               // host byte order
