@@ -18,6 +18,7 @@
 #include "src/tcp_command_client.h"
 #include "yaml-cpp/yaml.h"
 #include "log.h"
+#include "version.h"
 
 #define PANDARGENERALSDK_TCP_COMMAND_PORT (9347)
 
@@ -26,12 +27,13 @@ PandarGeneralSDK::PandarGeneralSDK(
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)>
         pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle,
-    int tz, int pcl_type, std::string frame_id, std::string timestampType) {
+    int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType) {
+  printVersion();
   pandarGeneral_ = NULL;
   // LOG_FUNC();
 
   pandarGeneral_ = new PandarGeneral(device_ip, lidar_port,
-            gps_port, pcl_callback, gps_callback, start_angle, tz, pcl_type, frame_id, timestampType);
+            gps_port, pcl_callback, gps_callback, start_angle, tz, pcl_type, lidar_type, frame_id, timestampType);
 
   tcp_command_client_ =
       TcpCommandClientNew(device_ip.c_str(), PANDARGENERALSDK_TCP_COMMAND_PORT);
@@ -46,11 +48,12 @@ PandarGeneralSDK::PandarGeneralSDK(
 PandarGeneralSDK::PandarGeneralSDK(\
     std::string pcap_path, \
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> pcl_callback, \
-    uint16_t start_angle, int tz, int pcl_type, std::string frame_id, std::string timestampType) {
+    uint16_t start_angle, int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType) {
+  printVersion();
   pandarGeneral_ = NULL;
 
   pandarGeneral_ = new PandarGeneral(pcap_path, pcl_callback, start_angle, \
-      tz, pcl_type, frame_id, timestampType);
+      tz, pcl_type, lidar_type, frame_id, timestampType);
 
   get_calibration_thr_ = NULL;
   tcp_command_client_ = NULL;
