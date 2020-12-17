@@ -14,3 +14,10 @@ PandarGeneralROS_1.1.1
 ##modify
 1. support multiple sensors
 2. support GPS port not hard bind 
+
+星期三, 16. 十二月 2020 20:25下午 
+##version
+PandarGeneralROS_1.1.2
+
+##modify
+1. modify msg data size 

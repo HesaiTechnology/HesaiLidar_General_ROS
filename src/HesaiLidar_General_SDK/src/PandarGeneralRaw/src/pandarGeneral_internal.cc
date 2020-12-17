@@ -645,7 +645,12 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
     PandarPacket packet = lidar_packets_.front();
     lidar_packets_.pop_front();
     pthread_mutex_unlock(&lidar_lock_);
-    memcpy(&rawpacket, &packet, 1512);
+    // memcpy(&rawpacket, &packet, 1512);
+    rawpacket.stamp.sec = floor(packet.stamp);
+    rawpacket.stamp.nsec = (packet.stamp - floor(packet.stamp))*1000000000;
+    rawpacket.size = packet.size;
+    rawpacket.data.resize(packet.size);
+    memcpy(&rawpacket.data[0], &packet.data[0], packet.size);
     m_dPktTimestamp = packet.stamp;
     // printf("##m_dPktTimestamp: %lf\n", m_dPktTimestamp);
 
@@ -1644,7 +1649,9 @@ void PandarGeneral_Internal::EmitBackMessege(char chLaserNumber, boost::shared_p
 void PandarGeneral_Internal::PushScanPacket(hesai_lidar::PandarScanPtr scan) {
   for(int i = 0; i<scan->packets.size(); i++) {
     PandarPacket pkt;
-    memcpy(&pkt, &scan->packets[i], 1512);
+    pkt.stamp = scan->packets[i].stamp.sec + scan->packets[i].stamp.nsec * 1000000000.0;
+    pkt.size = scan->packets[i].size;
+    memcpy(&pkt.data[0], &(scan->packets[i].data[0]), scan->packets[i].size);
     PushLiDARData(pkt);
   }
 }
