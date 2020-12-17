@@ -11,5 +11,5 @@
 # packet	block * 6 + tail
 
 time stamp
-uint8[1500] data
+uint8[] data
 uint32 size
