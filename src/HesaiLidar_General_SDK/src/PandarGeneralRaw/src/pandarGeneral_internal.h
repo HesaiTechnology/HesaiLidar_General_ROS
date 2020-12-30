@@ -390,10 +390,10 @@ class PandarGeneral_Internal {
   PcapReader *pcap_reader_;
   bool connect_lidar_;
   std::string m_sLidarType;
-  std::vector<float> sin_azimuth_map;
-  std::vector<float> cos_azimuth_map;
-  std::vector<float> sin_elevation_map;
-  std::vector<float> cos_elevation_map;
+  std::vector<float> m_sin_azimuth_map_;
+  std::vector<float> m_cos_azimuth_map_;
+  std::vector<float> m_sin_elevation_map_;
+  std::vector<float> m_cos_elevation_map_;
 
 };
 
