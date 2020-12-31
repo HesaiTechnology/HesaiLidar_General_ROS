@@ -167,6 +167,11 @@ void PandarGeneral_Internal::Init() {
     m_sin_azimuth_map_[i] = sinf(i * M_PI / 18000);
     m_cos_azimuth_map_[i] = cosf(i * M_PI / 18000);
   }
+  if (pcl_type_) {
+    for (int i = 0; i < 128; i++) {
+      PointCloudList[i].reserve(10000);
+    }
+  }
 
   //laser40
   // init the block time offset, us
@@ -716,6 +721,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               EmitBackMessege(LASER_COUNT, outMsg, scan);
               scan->packets.clear();
               scan->packets.reserve(600);
+              outMsg.reset(new PPointCloud());
             }
           }
         }
@@ -752,6 +758,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
               scan->packets.reserve(600);
+              outMsg.reset(new PPointCloud());
             }
           }
         } else {
@@ -788,6 +795,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
               scan->packets.reserve(600);
+              outMsg.reset(new PPointCloud());
             }
           }
         } else {
@@ -823,6 +831,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
               scan->packets.reserve(600);
+              outMsg.reset(new PPointCloud());
             }
           }
         } else {
@@ -859,6 +868,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
               scan->packets.reserve(600);
+              outMsg.reset(new PPointCloud());
             }
           }
         } else {
@@ -1675,10 +1685,10 @@ void PandarGeneral_Internal::EmitBackMessege(char chLaserNumber, boost::shared_p
     iPointCloudIndex = 0;
   }
   pcl_callback_(cld, cld->points[0].timestamp, scan); // the timestamp from first point cloud of cld
-  cld.reset(new PPointCloud());
   if (pcl_type_) {
     for (int i=0; i<128; i++) {
       PointCloudList[i].clear();
+      PointCloudList[i].reserve(10000);
     }
   }
 }
