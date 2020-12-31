@@ -141,12 +141,6 @@ PandarGeneral_Internal::PandarGeneral_Internal(std::string pcap_path, \
   connect_lidar_ = false;
   m_sTimestampType = timestampType;
   m_dPktTimestamp = 0.0f;
-  m_sin_azimuth_map_.resize(36000);
-  m_cos_azimuth_map_.resize(36000);
-  for(int i = 0; i < 36000; ++i) {
-    m_sin_azimuth_map_[i] = sinf(i * M_PI / 18000);
-    m_cos_azimuth_map_[i] = cosf(i * M_PI / 18000);
-  }
   Init();
 }
 
@@ -166,6 +160,12 @@ void PandarGeneral_Internal::Init() {
     float rotation = degreeToRadian(0.01 * static_cast<double>(rotIndex));
     cos_lookup_table_[rotIndex] = cosf(rotation);
     sin_lookup_table_[rotIndex] = sinf(rotation);
+  }
+  m_sin_azimuth_map_.resize(36000);
+  m_cos_azimuth_map_.resize(36000);
+  for(int i = 0; i < 36000; ++i) {
+    m_sin_azimuth_map_[i] = sinf(i * M_PI / 18000);
+    m_cos_azimuth_map_[i] = cosf(i * M_PI / 18000);
   }
 
   //laser40
@@ -662,7 +662,6 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
   int ret = 0;
 
   boost::shared_ptr<PPointCloud> outMsg(new PPointCloud());
-  outMsg->points.resize(1);
   hesai_lidar::PandarScanPtr scan(new hesai_lidar::PandarScan);
   hesai_lidar::PandarPacket rawpacket;
 
@@ -713,10 +712,10 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
                start_angle_ <= pkt.blocks[i].azimuth) ||
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
-            if (pcl_callback_ && (outMsg->points.size() > 0 || PointCloudList[0].size() > 0)) {
+            if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
               EmitBackMessege(LASER_COUNT, outMsg, scan);
               scan->packets.clear();
-              outMsg.reset(new PPointCloud());
+              scan->packets.reserve(600);
             }
           }
         }
@@ -749,7 +748,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
                start_angle_ <= pkt.blocks[i].azimuth) ||
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
-            if (pcl_callback_ && (outMsg->points.size() > 0 || PointCloudList[0].size() > 0)) {
+            if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
               scan->packets.reserve(600);
@@ -785,7 +784,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
                start_angle_ <= pkt.blocks[i].azimuth) ||
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
-            if (pcl_callback_ && (outMsg->points.size() > 0 || PointCloudList[0].size() > 0)) {
+            if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
               scan->packets.reserve(600);
@@ -820,7 +819,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
                start_angle_ <= pkt.blocks[i].azimuth) ||
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
-            if (pcl_callback_ && (outMsg->points.size() > 0 || PointCloudList[0].size() > 0)) {
+            if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
               scan->packets.reserve(600);
@@ -856,7 +855,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
                start_angle_ <= pkt.blocks[i].azimuth) ||
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
-            if (pcl_callback_ && (outMsg->points.size() > 0 || PointCloudList[0].size() > 0)) {
+            if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
               scan->packets.reserve(600);
@@ -1338,7 +1337,8 @@ void PandarGeneral_Internal::CalcPointXYZIT(Pandar40PPacket *pkt, int blockid,
     if (pcl_type_) {
       PointCloudList[i].push_back(point);
     } else {
-      PointCloud.push_back(point);
+      PointCloud[iPointCloudIndex] = point;
+      iPointCloudIndex++;
     }
   }
 }
@@ -1415,7 +1415,8 @@ void PandarGeneral_Internal::CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blo
     if (pcl_type_) {
       PointCloudList[i].push_back(point);
     } else {
-      PointCloud.push_back(point);
+      PointCloud[iPointCloudIndex] = point;
+      iPointCloudIndex++;
     }
   }
 }
@@ -1503,7 +1504,8 @@ void PandarGeneral_Internal::CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blo
     if (pcl_type_) {
       PointCloudList[i].push_back(point);
     } else {
-      PointCloud.push_back(point);
+      PointCloud[iPointCloudIndex] = point;
+      iPointCloudIndex++;
     }
   }
 }
@@ -1579,7 +1581,8 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
     if (pcl_type_)
       PointCloudList[i].push_back(point);
     else
-      PointCloud.push_back(point);
+      PointCloud[iPointCloudIndex] = point;
+      iPointCloudIndex++;
   }
 }
 
@@ -1653,7 +1656,6 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
     } else {
       PointCloud[iPointCloudIndex] = point;
       iPointCloudIndex++;
-      // PointCloud.emplace_back(point);
     }
   }
 }
@@ -1667,13 +1669,13 @@ void PandarGeneral_Internal::EmitBackMessege(char chLaserNumber, boost::shared_p
     }
   }
   else{
-    cld->points.assign(PointCloud.begin(),PointCloud.begin() + iPointCloudIndex + 1);
+    cld->points.assign(PointCloud.begin(),PointCloud.begin() + iPointCloudIndex);
     cld->width = (uint32_t)cld->points.size();
     cld->height = 1;
     iPointCloudIndex = 0;
   }
   pcl_callback_(cld, cld->points[0].timestamp, scan); // the timestamp from first point cloud of cld
-  //cld.reset(new PPointCloud());
+  cld.reset(new PPointCloud());
   if (pcl_type_) {
     for (int i=0; i<128; i++) {
       PointCloudList[i].clear();

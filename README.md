@@ -73,6 +73,9 @@ Data source will be from pcap file once "pcap_file" not empty
 $ source install/setup.bash
 ```
 ```
+$ export TZ=UTC0
+```
+```
 for PandarQT
 $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarQT"
 for Pandar64
