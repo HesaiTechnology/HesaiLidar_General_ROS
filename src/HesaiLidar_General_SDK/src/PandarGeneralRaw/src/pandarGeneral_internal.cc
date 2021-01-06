@@ -722,7 +722,6 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
               EmitBackMessege(LASER_COUNT, outMsg, scan);
               scan->packets.clear();
-              scan->packets.reserve(600);
             }
           }
         }
@@ -758,7 +757,6 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
-              scan->packets.reserve(600);
             }
           }
         } else {
@@ -794,7 +792,6 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
-              scan->packets.reserve(600);
             }
           }
         } else {
@@ -829,7 +826,6 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
-              scan->packets.reserve(600);
             }
           }
         } else {
@@ -865,7 +861,6 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
-              scan->packets.reserve(600);
             }
           }
         } else {
@@ -1712,13 +1707,13 @@ void PandarGeneral_Internal::SetEnvironmentVariableTZ(){
   unsigned int timezone = 0;
   time_t t1, t2 ;
   struct tm *tm_local, *tm_utc;
-	time(&t1);
-	t2 = t1;
-	tm_local = localtime(&t1);
-	t1 = mktime(tm_local) ;
-	tm_utc = gmtime(&t2);
-	t2 = mktime(tm_utc);
-  timezone = (t1 - t2) / 3600;
+  time(&t1);
+  t2 = t1;
+  tm_local = localtime(&t1);
+  t1 = mktime(tm_local) ;
+  tm_utc = gmtime(&t2);
+  t2 = mktime(tm_utc);
+  timezone = t2 >= t1 ? (t2 - t1) / 3600 : (t1 - t2) / 3600;
   std::string data = "TZ=UTC" + std::to_string(timezone);
   int len = data.length();
   TZ = (char *)malloc((len + 1) * sizeof(char));
