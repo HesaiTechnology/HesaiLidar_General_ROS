@@ -69,7 +69,7 @@ void PcapReader::parsePcap() {
   struct bpf_program filter;
   pcap_pkthdr *pktHeader;
   const unsigned char *packetBuf;
-  struct tm t;
+  struct tm t = {0};
   static int gap = 100;
   int64_t last_pkt_ts = 0;
   int count;

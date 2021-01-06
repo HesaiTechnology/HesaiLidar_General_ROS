@@ -12,7 +12,7 @@
 	<arg name="publish_type" default="points"/>
 	<arg name="timestamp_type" default=""/>
 	<arg name="data_type" default=""/>
-	<arg name="namespace" default=""/>
+	<arg name="namespace" default="hesai"/>
 	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/correction.csv"/>
 
 	<node pkg="hesai_lidar" name="hesai_lidar" ns="$(arg namespace)" type="hesai_lidar_node" output="screen" >

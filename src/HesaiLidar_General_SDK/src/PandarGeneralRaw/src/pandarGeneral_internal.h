@@ -136,6 +136,9 @@ HS_LIDAR_L64_7_BLOCK_PACKET_BODY_SIZE + HS_LIDAR_L64_PACKET_TAIL_WITHOUT_UDPSEQ_
 #define HesaiLidarSDK_DEFAULT_GPS_RECV_PORT 10110
 
 #define MAX_LASER_NUM (256)
+#define MAX_POINT_CLOUD_NUM (1000000)
+#define MAX_POINT_CLOUD_NUM_PER_CHANNEL (10000)
+#define MAX_AZIMUTH_DEGREE_NUM (36000)
 
 struct Pandar40PUnit_s {
   uint8_t intensity;
@@ -326,6 +329,7 @@ class PandarGeneral_Internal {
   void FillPacket(const uint8_t *buf, const int len, double timestamp);
 
   void EmitBackMessege(char chLaserNumber, boost::shared_ptr<PPointCloud> cld, hesai_lidar::PandarScanPtr scan);
+  void SetEnvironmentVariableTZ();
   pthread_mutex_t lidar_lock_;
   sem_t lidar_sem_;
   boost::thread *lidar_recv_thr_;
@@ -390,6 +394,11 @@ class PandarGeneral_Internal {
   PcapReader *pcap_reader_;
   bool connect_lidar_;
   std::string m_sLidarType;
+  std::vector<float> m_sin_azimuth_map_;
+  std::vector<float> m_cos_azimuth_map_;
+  std::vector<float> m_sin_elevation_map_;
+  std::vector<float> m_cos_elevation_map_;
+
 };
 
 #endif  // SRC_PANDARGENERAL_INTERNAL_H_
