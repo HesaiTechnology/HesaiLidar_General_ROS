@@ -29,3 +29,4 @@ PandarGeneralROS_1.1.3
 ##modify
 1. fix the problem in playing rosbag when timestamp is realtime
 2. optimize computational efficiency 
+3. change readme

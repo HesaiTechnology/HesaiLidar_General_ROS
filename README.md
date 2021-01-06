@@ -65,6 +65,16 @@ Make sure parameters above set to the same with Lidar setting
 
 Data source will be from pcap file once "pcap_file" not empty 
 
+**Reciving data from rosbag: config data_type and publish_type,leave the pcap_file empty**
+|Parameter | Value|
+|---------|---------------|
+|pcap_file ||
+|publish_type |points|　
+|data_type |rosbag|
+
+Data source will be from rosbag when "pcap_file" is set to empty and "data_type" is set to "rosbag"
+Make sure the parameter "publish_type" is set to "points"
+Make sure the parameter "namespace" in file hesai_lidar.launch is same with the namespace in rosbag
 
 ## Run
 
@@ -74,22 +84,22 @@ $ source install/setup.bash
 ```
 ```
 for PandarQT
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarQT"
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarQT" frame_id:="PandarQT"
 for Pandar64
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar64"
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar64" frame_id:="Pandar64"
 for Pandar20A
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20A"
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20A" frame_id:="Pandar20A"
 for Pandar20B
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20B"
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20B" frame_id:="Pandar20B"
 for Pandar40P
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40P"
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40P" frame_id:="Pandar40P"
 for Pandar40M
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40M"
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40M" frame_id:="Pandar40M"
 for PandarXT-32
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-32"
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-32" frame_id:="PandarXT-32"
 for PandarXT-16
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-16"
+$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-16" frame_id:="PandarXT-16"
 ```
 2. The driver will publish PointCloud messages to the topic `/pandar`  
 3. Open Rviz and add display by topic  
-4. Change fixed frame to lidar_type to view published point clouds  
+4. Change fixed frame to frame_id to view published point clouds  
