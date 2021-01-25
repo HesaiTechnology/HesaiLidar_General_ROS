@@ -269,7 +269,8 @@ class PandarGeneral_Internal {
       std::string device_ip, uint16_t lidar_port, uint16_t gps_port,
       boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)>
           pcl_callback, boost::function<void(double)> gps_callback, 
-      uint16_t start_angle, int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType);
+          uint16_t start_angle, int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType, // the default timestamp type is LiDAR time
+          std::string lidar_correction_file);
 
   /**
    * @brief Constructor
@@ -284,7 +285,8 @@ class PandarGeneral_Internal {
       std::string pcap_path, \
       boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> \
       pcl_callback, uint16_t start_angle, int tz, int pcl_type, \
-      std::string lidar_type, std::string frame_id, std::string timestampType);// the default timestamp type is LiDAR time
+      std::string lidar_type, std::string frame_id, std::string timestampType, // the default timestamp type is LiDAR time
+      std::string lidar_correction_file);
   ~PandarGeneral_Internal();
 
   /**
@@ -302,6 +304,8 @@ class PandarGeneral_Internal {
   int Start();
   void Stop();
   void PushScanPacket(hesai_lidar::PandarScanPtr scan);
+  bool GetCorrectionFileFlag();
+  void SetCorrectionFileFlag(bool flag);
 
  private:
   void Init();
@@ -330,6 +334,7 @@ class PandarGeneral_Internal {
 
   void EmitBackMessege(char chLaserNumber, boost::shared_ptr<PPointCloud> cld, hesai_lidar::PandarScanPtr scan);
   void SetEnvironmentVariableTZ();
+  hesai_lidar::PandarPacket SaveCorrectionFile(int laserNumber);
   pthread_mutex_t lidar_lock_;
   sem_t lidar_sem_;
   boost::thread *lidar_recv_thr_;
@@ -398,6 +403,8 @@ class PandarGeneral_Internal {
   std::vector<float> m_cos_azimuth_map_;
   std::vector<float> m_sin_elevation_map_;
   std::vector<float> m_cos_elevation_map_;
+  bool got_lidar_correction_flag;
+  std::string correction_file_path_;
 
 };
 
