@@ -11,9 +11,10 @@
 	<arg name="pcldata_type" default="0"/>
 	<arg name="publish_type" default="points"/>
 	<arg name="timestamp_type" default=""/>
-	<arg name="data_type" default=""/>
+	<arg name="data_type" default="rosbag"/>
 	<arg name="namespace" default="hesai"/>
 	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/correction.csv"/>
+	<arg name="multcast_addr"  default=""/>
 
 	<node pkg="hesai_lidar" name="hesai_lidar" ns="$(arg namespace)" type="hesai_lidar_node" output="screen" >
 		<param name="pcap_file" type="string" value="$(arg pcap_file)"/>
@@ -28,5 +29,6 @@
 		<param name="timestamp_type"  type="string" value="$(arg timestamp_type)"/>
 		<param name="data_type"  type="string" value="$(arg data_type)"/>
 		<param name="lidar_correction_file"  type="string" value="$(arg lidar_correction_file)"/>
+		<param name="multcast_addr"  type="string" value="$(arg multcast_addr)"/>
 	</node>
 </launch>

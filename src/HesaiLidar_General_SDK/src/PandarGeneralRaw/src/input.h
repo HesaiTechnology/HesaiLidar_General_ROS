@@ -32,7 +32,7 @@ typedef struct PandarPacket_s {
 
 class Input {
  public:
-  Input(uint16_t port, uint16_t gpsPort);
+  Input(uint16_t port, uint16_t gpsPort, std::string multcast_addr);
   ~Input();
   Input(std::string filePath, int type);
   int getPacket(PandarPacket *pkt);

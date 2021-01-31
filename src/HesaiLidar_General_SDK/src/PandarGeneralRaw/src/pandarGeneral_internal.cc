@@ -88,7 +88,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle, int tz,
     int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType,
-    std::string lidar_correction_file) {
+    std::string lidar_correction_file, std::string multcast_addr) {
       // LOG_FUNC();
   pthread_mutex_init(&lidar_lock_, NULL);
   sem_init(&lidar_sem_, 0, 0);
@@ -99,7 +99,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(
   enable_lidar_recv_thr_ = false;
   enable_lidar_process_thr_ = false;
 
-  input_.reset(new Input(lidar_port, gps_port));
+  input_.reset(new Input(lidar_port, gps_port, multcast_addr));
 
   start_angle_ = start_angle;
   pcl_callback_ = pcl_callback;
