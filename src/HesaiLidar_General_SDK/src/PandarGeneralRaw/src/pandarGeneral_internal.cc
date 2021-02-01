@@ -87,7 +87,8 @@ PandarGeneral_Internal::PandarGeneral_Internal(
     std::string device_ip, uint16_t lidar_port, uint16_t gps_port,
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle, int tz,
-    int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType) {
+    int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType,
+    std::string lidar_correction_file, std::string multicast_ip) {
       // LOG_FUNC();
   pthread_mutex_init(&lidar_lock_, NULL);
   sem_init(&lidar_sem_, 0, 0);
@@ -98,7 +99,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(
   enable_lidar_recv_thr_ = false;
   enable_lidar_process_thr_ = false;
 
-  input_.reset(new Input(lidar_port, gps_port));
+  input_.reset(new Input(lidar_port, gps_port, multicast_ip));
 
   start_angle_ = start_angle;
   pcl_callback_ = pcl_callback;
@@ -112,14 +113,16 @@ PandarGeneral_Internal::PandarGeneral_Internal(
   pcap_reader_ = NULL;
   m_sTimestampType = timestampType;
   m_dPktTimestamp = 0.0f;
-
+  got_lidar_correction_flag = false;
+  correction_file_path_ = lidar_correction_file;
   Init();
 }
 
 PandarGeneral_Internal::PandarGeneral_Internal(std::string pcap_path, \
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> \
     pcl_callback, uint16_t start_angle, int tz, int pcl_type, \
-    std::string lidar_type, std::string frame_id, std::string timestampType) {
+    std::string lidar_type, std::string frame_id, std::string timestampType,
+    std::string lidar_correction_file) {
   pthread_mutex_init(&lidar_lock_, NULL);
   sem_init(&lidar_sem_, 0, 0);
 
@@ -142,6 +145,8 @@ PandarGeneral_Internal::PandarGeneral_Internal(std::string pcap_path, \
   connect_lidar_ = false;
   m_sTimestampType = timestampType;
   m_dPktTimestamp = 0.0f;
+  got_lidar_correction_flag = false;
+  correction_file_path_ = lidar_correction_file;
   Init();
 }
 
@@ -720,6 +725,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
+              scan->packets.push_back(SaveCorrectionFile(LASER_COUNT));
               EmitBackMessege(LASER_COUNT, outMsg, scan);
               scan->packets.clear();
             }
@@ -755,6 +761,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
+              scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
             }
@@ -790,6 +797,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
+              scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
             }
@@ -824,6 +832,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
+              scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
             }
@@ -859,6 +868,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
+              scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
             }
@@ -1689,12 +1699,68 @@ void PandarGeneral_Internal::EmitBackMessege(char chLaserNumber, boost::shared_p
 }
 
 void PandarGeneral_Internal::PushScanPacket(hesai_lidar::PandarScanPtr scan) {
-  for(int i = 0; i<scan->packets.size(); i++) {
-    PandarPacket pkt;
-    pkt.stamp = scan->packets[i].stamp.sec + scan->packets[i].stamp.nsec / 1000000000.0;
-    pkt.size = scan->packets[i].size;
-    memcpy(&pkt.data[0], &(scan->packets[i].data[0]), scan->packets[i].size);
-    PushLiDARData(pkt);
+  for(int i = 0; i < scan->packets.size(); i++) {
+    if (scan->packets[i].data[0] == 0x47 && scan->packets[i].data[1] == 0x74){  //correction file
+      if (got_lidar_correction_flag){
+        continue;
+      }
+      else{
+        std::cout << "Load correction file from rosbag" << std::endl;
+        int correction_lenth = ((scan->packets[i].data[4] & 0xff) << 24) | ((scan->packets[i].data[5] & 0xff) << 16) | 
+                              ((scan->packets[i].data[6] & 0xff) << 8) | ((scan->packets[i].data[7] & 0xff) << 0);
+        if (correction_lenth == scan->packets[i].size){
+          char buffer[correction_lenth];
+          memcpy(buffer, &(scan->packets[i].data[8]), scan->packets[i].size);
+          std::string correction_string = std::string(buffer);
+          int ret = LoadCorrectionFile(correction_string);
+          if (ret != 0) {
+            std::cout << "Load correction file from rosbag failed" << std::endl;
+          } 
+          else {
+            std::cout << "Load correction file from rosbag succeed" << std::endl;
+            got_lidar_correction_flag = true;
+          }
+        }
+        else{
+          printf("Load correction file from rosbag failed");
+        } 
+        if(!got_lidar_correction_flag){
+          std::ifstream fin(correction_file_path_);
+          if (fin.is_open()) {
+            std::cout << "Open correction file " << correction_file_path_ << " succeed" << std::endl;
+          }
+          else{
+            std::cout << "Open correction file " << correction_file_path_ <<" failed" << std::endl;
+            got_lidar_correction_flag = true;
+            continue;
+          }
+          int length = 0;
+          std::string strlidarCalibration;
+          fin.seekg(0, std::ios::end);
+          length = fin.tellg();
+          fin.seekg(0, std::ios::beg);
+          char *buffer = new char[length];
+          fin.read(buffer, length);
+          fin.close();
+          strlidarCalibration = buffer;
+          int ret = LoadCorrectionFile(strlidarCalibration);
+          if (ret != 0) {
+            std::cout << "Load correction file from " << correction_file_path_ <<" failed" << std::endl;
+          } else {
+            std::cout << "Load correction file from " << correction_file_path_ << " succeed" << std::endl;
+          }
+          got_lidar_correction_flag = true;
+        }
+
+      }
+    }
+    else {                                                                  //pcap
+      PandarPacket pkt;
+      pkt.stamp = scan->packets[i].stamp.sec + scan->packets[i].stamp.nsec / 1000000000.0;
+      pkt.size = scan->packets[i].size;
+      memcpy(&pkt.data[0], &(scan->packets[i].data[0]), scan->packets[i].size);
+      PushLiDARData(pkt);
+    }
   }
 }
 
@@ -1726,4 +1792,33 @@ void PandarGeneral_Internal::SetEnvironmentVariableTZ(){
   }
 }
 
+hesai_lidar::PandarPacket PandarGeneral_Internal::SaveCorrectionFile(int laserNumber){
+  hesai_lidar::PandarPacket result;
+  std::stringstream content;
+  content<< "Laser id,Elevation,Azimuth" << std::endl;
+  for(int i = 0; i < laserNumber; i++){
+    content<< (i + 1) << "," << General_elev_angle_map_[i] << "," << General_horizatal_azimuth_offset_map_[i] << std::endl;
+  }
+  int length = content.str().size();
+  result.size = length;
+  result.data.resize(length + 8);
+  result.data[0] = 0x47;
+  result.data[1] = 0x74;
+  result.data[2] = 0x05;
+  result.data[3] = 0x00;
+  result.data[4] = (length >> 24) & 0xff;
+  result.data[5] = (length >> 16) & 0xff;
+  result.data[6] = (length >> 8) & 0xff;
+  result.data[7] = (length) & 0xff;
+  memcpy(&result.data[8], content.str().c_str(), length);
+  return result;
+}
+
+bool PandarGeneral_Internal::GetCorrectionFileFlag(){
+  return got_lidar_correction_flag;
+}
+
+void PandarGeneral_Internal::SetCorrectionFileFlag(bool flag ){
+  got_lidar_correction_flag = flag;
+}
 

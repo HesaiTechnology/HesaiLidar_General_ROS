@@ -5,6 +5,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include "pandarGeneral_sdk/pandarGeneral_sdk.h"
+#include <fstream>
 
 using namespace std;
 
@@ -26,6 +27,7 @@ public:
     int pclDataType;
     string pcapFile;
     string dataType;
+    string multicastIp;
 
     nh.getParam("pcap_file", pcapFile);
     nh.getParam("server_ip", serverIp);
@@ -39,46 +41,47 @@ public:
     nh.getParam("publish_type", m_sPublishType);
     nh.getParam("timestamp_type", m_sTimestampType);
     nh.getParam("data_type", dataType);
+    nh.getParam("multicast_ip", multicastIp);
 
     if(!pcapFile.empty()){
       hsdk = new PandarGeneralSDK(pcapFile, boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2, _3), \
-      static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType);
+      static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType, lidarCorrectionFile);
       if (hsdk != NULL) {
-        ifstream fin(lidarCorrectionFile);
-        int length = 0;
-        std::string strlidarCalibration;
-        fin.seekg(0, std::ios::end);
-        length = fin.tellg();
-        fin.seekg(0, std::ios::beg);
-        char *buffer = new char[length];
-        fin.read(buffer, length);
-        fin.close();
-        strlidarCalibration = buffer;
-        hsdk->LoadLidarCorrectionFile(strlidarCalibration);
+        std::ifstream fin(lidarCorrectionFile);
+        if (fin.is_open()) {
+          std::cout << "Open correction file " << lidarCorrectionFile << " succeed" << std::endl;
+          int length = 0;
+          std::string strlidarCalibration;
+          fin.seekg(0, std::ios::end);
+          length = fin.tellg();
+          fin.seekg(0, std::ios::beg);
+          char *buffer = new char[length];
+          fin.read(buffer, length);
+          fin.close();
+          strlidarCalibration = buffer;
+          int ret = hsdk->LoadLidarCorrectionFile(strlidarCalibration);
+          if (ret != 0) {
+            std::cout << "Load correction file from " << lidarCorrectionFile <<" failed" << std::endl;
+          } else {
+            std::cout << "Load correction file from " << lidarCorrectionFile << " succeed" << std::endl;
+          }
+        }
+        else{
+          std::cout << "Open correction file " << lidarCorrectionFile << " succeed" << std::endl;
+        }
       }
     }
     else if ("rosbag" == dataType){
       hsdk = new PandarGeneralSDK("", boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2, _3), \
-      static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType);
+      static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType, lidarCorrectionFile);
       if (hsdk != NULL) {
-        ifstream fin(lidarCorrectionFile);
-        int length = 0;
-        std::string strlidarCalibration;
-        fin.seekg(0, std::ios::end);
-        length = fin.tellg();
-        fin.seekg(0, std::ios::beg);
-        char *buffer = new char[length];
-        fin.read(buffer, length);
-        fin.close();
-        strlidarCalibration = buffer;
-        hsdk->LoadLidarCorrectionFile(strlidarCalibration);
         packetSubscriber = node.subscribe("pandar_packets",10,&HesaiLidarClient::scanCallback, (HesaiLidarClient*)this, ros::TransportHints().tcpNoDelay(true));
       }
     }
     else {
       hsdk = new PandarGeneralSDK(serverIp, lidarRecvPort, gpsPort, \
         boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2, _3), \
-        boost::bind(&HesaiLidarClient::gpsCallback, this, _1), static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType);
+        boost::bind(&HesaiLidarClient::gpsCallback, this, _1), static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType, lidarCorrectionFile, multicastIp);
     }
     
     if (hsdk != NULL) {
