@@ -270,7 +270,7 @@ class PandarGeneral_Internal {
       boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)>
           pcl_callback, boost::function<void(double)> gps_callback, 
           uint16_t start_angle, int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType, // the default timestamp type is LiDAR time
-          std::string lidar_correction_file, std::string multcast_addr);
+          std::string lidar_correction_file, std::string multicast_ip);
 
   /**
    * @brief Constructor

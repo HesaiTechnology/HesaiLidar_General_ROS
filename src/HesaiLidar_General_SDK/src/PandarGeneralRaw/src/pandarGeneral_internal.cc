@@ -88,7 +88,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle, int tz,
     int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType,
-    std::string lidar_correction_file, std::string multcast_addr) {
+    std::string lidar_correction_file, std::string multicast_ip) {
       // LOG_FUNC();
   pthread_mutex_init(&lidar_lock_, NULL);
   sem_init(&lidar_sem_, 0, 0);
@@ -99,7 +99,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(
   enable_lidar_recv_thr_ = false;
   enable_lidar_process_thr_ = false;
 
-  input_.reset(new Input(lidar_port, gps_port, multcast_addr));
+  input_.reset(new Input(lidar_port, gps_port, multicast_ip));
 
   start_angle_ = start_angle;
   pcl_callback_ = pcl_callback;
@@ -1705,31 +1705,32 @@ void PandarGeneral_Internal::PushScanPacket(hesai_lidar::PandarScanPtr scan) {
         continue;
       }
       else{
+        std::cout << "Load correction file from rosbag" << std::endl;
         int correction_lenth = ((scan->packets[i].data[4] & 0xff) << 24) | ((scan->packets[i].data[5] & 0xff) << 16) | 
                               ((scan->packets[i].data[6] & 0xff) << 8) | ((scan->packets[i].data[7] & 0xff) << 0);
         if (correction_lenth == scan->packets[i].size){
-          char buffer[correction_lenth ];
+          char buffer[correction_lenth];
           memcpy(buffer, &(scan->packets[i].data[8]), scan->packets[i].size);
           std::string correction_string = std::string(buffer);
           int ret = LoadCorrectionFile(correction_string);
           if (ret != 0) {
-            std::cout << "Get correction file from rosbag failed" << std::endl;
+            std::cout << "Load correction file from rosbag failed" << std::endl;
           } 
           else {
-            std::cout << "Get correction file from rosbag succeed" << std::endl;
+            std::cout << "Load correction file from rosbag succeed" << std::endl;
             got_lidar_correction_flag = true;
           }
         }
         else{
-          printf("Get correction file from rosbag failed");
+          printf("Load correction file from rosbag failed");
         } 
         if(!got_lidar_correction_flag){
           std::ifstream fin(correction_file_path_);
           if (fin.is_open()) {
-            std::cout << "Open correction file success" << std::endl;
+            std::cout << "Open correction file " << correction_file_path_ << " succeed" << std::endl;
           }
           else{
-            std::cout << "Open correction file failed" << std::endl;
+            std::cout << "Open correction file " << correction_file_path_ <<" failed" << std::endl;
             got_lidar_correction_flag = true;
             continue;
           }
@@ -1744,9 +1745,9 @@ void PandarGeneral_Internal::PushScanPacket(hesai_lidar::PandarScanPtr scan) {
           strlidarCalibration = buffer;
           int ret = LoadCorrectionFile(strlidarCalibration);
           if (ret != 0) {
-            std::cout << "Parse Lidar Correction Error" << std::endl;
+            std::cout << "Load correction file from " << correction_file_path_ <<" failed" << std::endl;
           } else {
-            std::cout << "Parse Lidar Correction Success!!!" << std::endl;
+            std::cout << "Load correction file from " << correction_file_path_ << " succeed" << std::endl;
           }
           got_lidar_correction_flag = true;
         }
@@ -1794,9 +1795,9 @@ void PandarGeneral_Internal::SetEnvironmentVariableTZ(){
 hesai_lidar::PandarPacket PandarGeneral_Internal::SaveCorrectionFile(int laserNumber){
   hesai_lidar::PandarPacket result;
   std::stringstream content;
-  content<<"Laser id,Elevation,Azimuth"<<std::endl;
+  content<< "Laser id,Elevation,Azimuth" << std::endl;
   for(int i = 0; i < laserNumber; i++){
-    content<<(i + 1)<<","<<General_elev_angle_map_[i]<<","<<General_horizatal_azimuth_offset_map_[i]<<std::endl;
+    content<< (i + 1) << "," << General_elev_angle_map_[i] << "," << General_horizatal_azimuth_offset_map_[i] << std::endl;
   }
   int length = content.str().size();
   result.size = length;

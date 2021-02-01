@@ -53,8 +53,9 @@ $ catkin build --force-cmake
 |lidar_recv_port |2368|
 |gps_recv_port  |10110|
 |pcap_file ||　　
+|multicast_ip ||
 
-Data source will be from connected Lidar when "pcap_file" set to empty
+Data source will be from connected Lidar when "pcap_file" set to empty, when "multicast_ip" configured, driver will get data packets from multicast ip address. keep "multicast_ip" empty if you are not using multicast, thus driver will monitor the "liar_recv_port" to get data.
 Make sure parameters above set to the same with Lidar setting
 
 **Reciving data from pcap file: config pcap_file and correction file path**

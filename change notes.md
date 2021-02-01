@@ -30,3 +30,12 @@ PandarGeneralROS_1.1.3
 1. fix the problem in playing rosbag when timestamp is realtime
 2. optimize computational efficiency 
 3. change readme
+
+星期一, 01. 二月 2021 17:30下午 
+##version
+PandarGeneralROS_1.1.4
+
+##modify
+1. Add correction file of all lidars and set Pandar64.csv as the defalut correction file
+2. Support multicast
+3. Save correction file in rosbag

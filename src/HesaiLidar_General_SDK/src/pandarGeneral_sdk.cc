@@ -29,13 +29,13 @@ PandarGeneralSDK::PandarGeneralSDK(
         pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle,
     int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType,
-    std::string lidar_correction_file, std::string multcast_addr) {
+    std::string lidar_correction_file, std::string multicast_ip) {
   printVersion();
   pandarGeneral_ = NULL;
   // LOG_FUNC();
 
   pandarGeneral_ = new PandarGeneral(device_ip, lidar_port,
-            gps_port, pcl_callback, gps_callback, start_angle, tz, pcl_type, lidar_type, frame_id, timestampType, lidar_correction_file, multcast_addr);
+            gps_port, pcl_callback, gps_callback, start_angle, tz, pcl_type, lidar_type, frame_id, timestampType, lidar_correction_file, multicast_ip);
 
   tcp_command_client_ =
       TcpCommandClientNew(device_ip.c_str(), PANDARGENERALSDK_TCP_COMMAND_PORT);
@@ -122,7 +122,7 @@ void PandarGeneralSDK::GetCalibrationFromDevice() {
   if (!tcp_command_client_) {
     return;
   }
-
+  std::cout << "Load correction file from lidar" << std::endl;
   int32_t ret = 0;
   // get lidar calibration.
   char *buffer = NULL;
@@ -135,9 +135,9 @@ void PandarGeneralSDK::GetCalibrationFromDevice() {
     if (pandarGeneral_) {
       ret = pandarGeneral_->LoadCorrectionFile(correction_content_);
       if (ret != 0) {
-        std::cout << "Parse Lidar Correction Error" << std::endl;
+        std::cout << "Load correction file from lidar failed" << std::endl;
       } else {
-        std::cout << "Parse Lidar Correction Success!!!" << std::endl;
+        std::cout << "Load correction file from lidar succeed" << std::endl;
         pandarGeneral_->SetCorrectionFileFlag(true);
       }
     }
@@ -146,10 +146,10 @@ void PandarGeneralSDK::GetCalibrationFromDevice() {
   if(!pandarGeneral_->GetCorrectionFileFlag()){
     std::ifstream fin(correction_file_path_);
     if (fin.is_open()) {
-      std::cout << "Open correction file success" << std::endl;
+      std::cout << "Open correction file " << correction_file_path_ << " succeed" << std::endl;
     }
     else{
-      std::cout << "Open correction file failed" << std::endl;
+      std::cout << "Open correction file " << correction_file_path_ <<" failed" << std::endl;
       return;
     }
     int length = 0;
@@ -163,9 +163,9 @@ void PandarGeneralSDK::GetCalibrationFromDevice() {
     strlidarCalibration = buffer;
     ret = pandarGeneral_->LoadCorrectionFile(strlidarCalibration);
     if (ret != 0) {
-      std::cout << "Parse Lidar Correction Error" << std::endl;
+      std::cout << "Load correction file from " << correction_file_path_ <<" failed" << std::endl;
     } else {
-      std::cout << "Parse Lidar Correction Success!!!" << std::endl;
+      std::cout << "Load correction file from " << correction_file_path_ << " succeed" << std::endl;
       pandarGeneral_->SetCorrectionFileFlag(true);
     }
   }

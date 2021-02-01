@@ -27,7 +27,7 @@ public:
     int pclDataType;
     string pcapFile;
     string dataType;
-    string multicastAddr;
+    string multicastIp;
 
     nh.getParam("pcap_file", pcapFile);
     nh.getParam("server_ip", serverIp);
@@ -41,7 +41,7 @@ public:
     nh.getParam("publish_type", m_sPublishType);
     nh.getParam("timestamp_type", m_sTimestampType);
     nh.getParam("data_type", dataType);
-    nh.getParam("multcast_addr", multicastAddr);
+    nh.getParam("multicast_ip", multicastIp);
 
     if(!pcapFile.empty()){
       hsdk = new PandarGeneralSDK(pcapFile, boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2, _3), \
@@ -49,7 +49,7 @@ public:
       if (hsdk != NULL) {
         std::ifstream fin(lidarCorrectionFile);
         if (fin.is_open()) {
-          std::cout << "Open correction file success" << std::endl;
+          std::cout << "Open correction file " << lidarCorrectionFile << " succeed" << std::endl;
           int length = 0;
           std::string strlidarCalibration;
           fin.seekg(0, std::ios::end);
@@ -59,10 +59,15 @@ public:
           fin.read(buffer, length);
           fin.close();
           strlidarCalibration = buffer;
-          hsdk->LoadLidarCorrectionFile(strlidarCalibration);
+          int ret = hsdk->LoadLidarCorrectionFile(strlidarCalibration);
+          if (ret != 0) {
+            std::cout << "Load correction file from " << lidarCorrectionFile <<" failed" << std::endl;
+          } else {
+            std::cout << "Load correction file from " << lidarCorrectionFile << " succeed" << std::endl;
+          }
         }
         else{
-          std::cout << "Open correction file failed" << std::endl;
+          std::cout << "Open correction file " << lidarCorrectionFile << " succeed" << std::endl;
         }
       }
     }
@@ -76,7 +81,7 @@ public:
     else {
       hsdk = new PandarGeneralSDK(serverIp, lidarRecvPort, gpsPort, \
         boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2, _3), \
-        boost::bind(&HesaiLidarClient::gpsCallback, this, _1), static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType, lidarCorrectionFile, multicastAddr);
+        boost::bind(&HesaiLidarClient::gpsCallback, this, _1), static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType, lidarCorrectionFile, multicastIp);
     }
     
     if (hsdk != NULL) {

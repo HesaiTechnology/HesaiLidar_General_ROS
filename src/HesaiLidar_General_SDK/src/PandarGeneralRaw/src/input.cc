@@ -30,7 +30,7 @@
 #include "src/input.h"
 #include "log.h"
 
-Input::Input(uint16_t port, uint16_t gpsPort, std::string multcast_addr) {
+Input::Input(uint16_t port, uint16_t gpsPort, std::string multicast_ip) {
   // LOG_D("port: %d, gpsPort: %d", port,gpsPort);
   socketForLidar = -1;
   socketForLidar = socket(PF_INET, SOCK_DGRAM, 0);
@@ -50,16 +50,16 @@ Input::Input(uint16_t port, uint16_t gpsPort, std::string multcast_addr) {
     perror("bind");  // TODO(Philip.Pi): perror errno
     return;
   }
-  if(multcast_addr != ""){
+  if(multicast_ip != ""){
     struct ip_mreq mreq;                      // 多播地址结构体
-    mreq.imr_multiaddr.s_addr=inet_addr(multcast_addr.c_str());
+    mreq.imr_multiaddr.s_addr=inet_addr(multicast_ip.c_str());
     mreq.imr_interface.s_addr = htonl(INADDR_ANY); 
     int ret = setsockopt(socketForLidar, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq));
     if (ret < 0) {
-      perror("setsockopt failed !");
+      perror("Multicast IP error,set correct multicast ip address or keep it empty in lanch file\n");
     } 
     else {
-      printf("setsockopt success\n");
+      printf("Recive data from multicast ip address %s\n", multicast_ip.c_str());
     }
   }
 
