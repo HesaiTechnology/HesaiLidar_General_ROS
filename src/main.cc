@@ -67,7 +67,7 @@ public:
           }
         }
         else{
-          std::cout << "Open correction file " << lidarCorrectionFile << " succeed" << std::endl;
+          std::cout << "Open correction file " << lidarCorrectionFile << " failed" << std::endl;
         }
       }
     }

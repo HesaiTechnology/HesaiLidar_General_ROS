@@ -39,3 +39,11 @@ PandarGeneralROS_1.1.4
 1. Add correction file of all lidars and set Pandar64.csv as the defalut correction file
 2. Support multicast
 3. Save correction file in rosbag
+
+星期二, 02. 三月 2021 17:30下午 
+##version
+PandarGeneralROS_1.1.5
+
+##modify
+1. Add coordinate correction for PandarXT and PandarQT
+
