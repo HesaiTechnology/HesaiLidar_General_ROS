@@ -1587,7 +1587,14 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
       point.y = HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
       point.z = 0;
     }
-
+    if (COORDINATE_CORRECTION_CHECK){
+      float xyDistance = unit.distance * m_cos_elevation_map_[i];
+      float point_x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
+      float point_y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
+      float point_z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+      printf("distance = %f; elevation = %f; azimuth = %f; delta X = %f; delta Y = %f; delta Z = %f; \n", 
+             unit.distance, pandarGeneral_elev_angle_map[i], float(azimuth / 100), point.x - point_x, point.y - point_y, point.z - point_z);
+    }
     point.intensity = unit.intensity;
 
     if ("realtime" == m_sTimestampType) {
@@ -1665,6 +1672,14 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
     point.y = xyDistance * m_cos_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_sin_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_cos_azimuth_map_[azimuth];
     point.z = distance * m_sin_elevation_map_[i];
 
+    if (COORDINATE_CORRECTION_CHECK){
+      float xyDistance = unit.distance * m_cos_elevation_map_[i];
+      float point_x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
+      float point_y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
+      float point_z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+      printf("distance = %f; elevation = %f; azimuth = %f; delta X = %f; delta Y = %f; delta Z = %f; \n", 
+             unit.distance, pandarGeneral_elev_angle_map[i], float(azimuth / 100), point.x - point_x, point.y - point_y, point.z - point_z);
+    }
     point.intensity = unit.intensity;
 
     if ("realtime" == m_sTimestampType) {
