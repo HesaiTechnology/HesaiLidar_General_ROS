@@ -1562,29 +1562,29 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
     if(azimuth > 36000)
       azimuth -= 36000;
     if (m_sin_elevation_map_[i] != 0){
-      float c = (QT_COORDINATE_CORRECTION_ODOG * QT_COORDINATE_CORRECTION_ODOG +
-                QT_COORDINATE_CORRECTION_ODOT * QT_COORDINATE_CORRECTION_ODOT - 
+      float c = (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG +
+                HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT - 
                 unit.distance * unit.distance) * 
                 m_sin_elevation_map_[i] * m_sin_elevation_map_[i];
-      float b = 2 * m_sin_elevation_map_[i] * m_cos_elevation_map_[i] * (QT_COORDINATE_CORRECTION_ODOG * m_cos_azimuth_map_[azimuth] - QT_COORDINATE_CORRECTION_ODOT * m_sin_azimuth_map_[azimuth]);
+      float b = 2 * m_sin_elevation_map_[i] * m_cos_elevation_map_[i] * (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * m_cos_azimuth_map_[azimuth] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT * m_sin_azimuth_map_[azimuth]);
       point.z = (- b + sqrt(b * b - 4 * c)) / 2;
-      point.x = point.z * m_sin_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] - QT_COORDINATE_CORRECTION_ODOT;
-      point.y = point.z * m_cos_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] + QT_COORDINATE_CORRECTION_ODOG;
+      point.x = point.z * m_sin_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+      point.y = point.z * m_cos_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
     }
     else if (m_cos_azimuth_map_[azimuth] != 0){
       float tan_azimuth = m_sin_azimuth_map_[azimuth] / m_cos_azimuth_map_[azimuth];
-      float c = (QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + QT_COORDINATE_CORRECTION_ODOT) *
-                (QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + QT_COORDINATE_CORRECTION_ODOT) - 
+      float c = (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) *
+                (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) - 
                 unit.distance * unit.distance;
       float a = 1 + tan_azimuth * tan_azimuth;
-      float b = - 2 * tan_azimuth * (QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + QT_COORDINATE_CORRECTION_ODOT);
+      float b = - 2 * tan_azimuth * (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT);
       point.z = 0;
       point.y = (- b + sqrt(b * b - 4 * a * c)) / (2 * a);
-      point.x = (point.y - QT_COORDINATE_CORRECTION_ODOG) * tan_azimuth - QT_COORDINATE_CORRECTION_ODOT;
+      point.x = (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * tan_azimuth - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
     }
     else {
-      point.x = sqrt(unit.distance * unit.distance - QT_COORDINATE_CORRECTION_ODOG * QT_COORDINATE_CORRECTION_ODOG);
-      point.y = QT_COORDINATE_CORRECTION_ODOG;
+      point.x = sqrt(unit.distance * unit.distance - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG);
+      point.y = HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
       point.z = 0;
     }
 
@@ -1658,11 +1658,11 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
       azimuth += 36000;
     if(azimuth > 36000)
       azimuth -= 36000;
-    float distance = unit.distance - (XT_COORDINATE_CORRECTION_H * m_cos_azimuth_map_[int(General_horizatal_azimuth_offset_map_[i] * 100)] * m_cos_elevation_map_[i] -
-                     XT_COORDINATE_CORRECTION_B * m_sin_azimuth_map_[int(General_horizatal_azimuth_offset_map_[i] * 100)] * m_cos_elevation_map_[i]);
+    float distance = unit.distance - (HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_cos_azimuth_map_[int(General_horizatal_azimuth_offset_map_[i] * 100)] * m_cos_elevation_map_[i] -
+                     HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_sin_azimuth_map_[int(General_horizatal_azimuth_offset_map_[i] * 100)] * m_cos_elevation_map_[i]);
     float xyDistance = distance * m_cos_elevation_map_[i];
-    point.x = xyDistance * m_sin_azimuth_map_[azimuth] - XT_COORDINATE_CORRECTION_B * m_cos_azimuth_map_[azimuth] + XT_COORDINATE_CORRECTION_H * m_sin_azimuth_map_[azimuth];
-    point.y = xyDistance * m_cos_azimuth_map_[azimuth] + XT_COORDINATE_CORRECTION_B * m_sin_azimuth_map_[azimuth] + XT_COORDINATE_CORRECTION_H * m_cos_azimuth_map_[azimuth];
+    point.x = xyDistance * m_sin_azimuth_map_[azimuth] - HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_cos_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_sin_azimuth_map_[azimuth];
+    point.y = xyDistance * m_cos_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_sin_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_cos_azimuth_map_[azimuth];
     point.z = distance * m_sin_elevation_map_[i];
 
     point.intensity = unit.intensity;
