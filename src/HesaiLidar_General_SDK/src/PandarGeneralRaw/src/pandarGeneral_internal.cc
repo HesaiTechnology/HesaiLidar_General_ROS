@@ -1665,8 +1665,8 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
       azimuth += 36000;
     if(azimuth > 36000)
       azimuth -= 36000;
-    float distance = unit.distance - (HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_cos_azimuth_map_[int(General_horizatal_azimuth_offset_map_[i] * 100)] * m_cos_elevation_map_[i] -
-                     HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_sin_azimuth_map_[int(General_horizatal_azimuth_offset_map_[i] * 100)] * m_cos_elevation_map_[i]);
+    float distance = unit.distance - (HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_cos_azimuth_map_[abs(int(General_horizatal_azimuth_offset_map_[i] * 100))] * m_cos_elevation_map_[i] -
+                     HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_sin_azimuth_map_[abs(int(General_horizatal_azimuth_offset_map_[i] * 100))] * m_cos_elevation_map_[i]);
     float xyDistance = distance * m_cos_elevation_map_[i];
     point.x = xyDistance * m_sin_azimuth_map_[azimuth] - HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_cos_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_sin_azimuth_map_[azimuth];
     point.y = xyDistance * m_cos_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_sin_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_cos_azimuth_map_[azimuth];
