@@ -47,3 +47,10 @@ PandarGeneralROS_1.1.5
 ##modify
 1. Add coordinate correction for PandarXT and PandarQT
 
+星期一, 08. 三月 2021 17:30下午 
+##version
+PandarGeneralROS_1.1.6
+
+##modify
+1. Fix bug in caculate pointXYZ of PandarQT
+

@@ -1570,6 +1570,13 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
       point.z = (- b + sqrt(b * b - 4 * c)) / 2;
       point.x = point.z * m_sin_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
       point.y = point.z * m_cos_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
+      if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
+         (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
+          point.z * m_sin_elevation_map_[i]) <= 0){
+        point.z = (- b - sqrt(b * b - 4 * c)) / 2;
+        point.x = point.z * m_sin_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+        point.y = point.z * m_cos_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
+      }
     }
     else if (m_cos_azimuth_map_[azimuth] != 0){
       float tan_azimuth = m_sin_azimuth_map_[azimuth] / m_cos_azimuth_map_[azimuth];
@@ -1581,15 +1588,29 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
       point.z = 0;
       point.y = (- b + sqrt(b * b - 4 * a * c)) / (2 * a);
       point.x = (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * tan_azimuth - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+      if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
+         (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
+          point.z * m_sin_elevation_map_[i]) <= 0){
+        point.z = 0;
+        point.y = (- b - sqrt(b * b - 4 * a * c)) / (2 * a);
+        point.x = (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * tan_azimuth - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+      }
     }
     else {
       point.x = sqrt(unit.distance * unit.distance - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG);
       point.y = HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
       point.z = 0;
+      if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
+         (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
+          point.z * m_sin_elevation_map_[i]) <= 0){
+        point.x = - sqrt(unit.distance * unit.distance - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG);
+        point.y = HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
+        point.z = 0;
+      }
     }
     if (COORDINATE_CORRECTION_CHECK){
       float xyDistance = unit.distance * m_cos_elevation_map_[i];
-      float point_x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
+      float point_x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]); // without coordinate correction 
       float point_y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
       float point_z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
       printf("distance = %f; elevation = %f; azimuth = %f; delta X = %f; delta Y = %f; delta Z = %f; \n", 
