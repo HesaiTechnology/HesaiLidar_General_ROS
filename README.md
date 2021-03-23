@@ -77,7 +77,7 @@ Data source will be from rosbag when "pcap_file" is set to empty and "data_type"
 Make sure the parameter "publish_type" is set to "points"
 Make sure the parameter "namespace" in file hesai_lidar.launch is same with the namespace in rosbag
 
-## Run
+## Run as independent node
 
 1. Make sure current path in the `rosworkspace` directory
 ```
@@ -100,6 +100,34 @@ for PandarXT-32
 $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-32" frame_id:="PandarXT-32"
 for PandarXT-16
 $ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-16" frame_id:="PandarXT-16"
+```
+2. The driver will publish PointCloud messages to the topic `/pandar`  
+3. Open Rviz and add display by topic  
+4. Change fixed frame to frame_id to view published point clouds  
+
+## Run as nodelet
+
+1. Make sure current path in the `rosworkspace` directory
+```
+$ source install/setup.bash
+```
+```
+for PandarQT
+$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarQT" frame_id:="PandarQT"
+for Pandar64
+$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="Pandar64" frame_id:="Pandar64"
+for Pandar20A
+$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="Pandar20A" frame_id:="Pandar20A"
+for Pandar20B
+$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="Pandar20B" frame_id:="Pandar20B"
+for Pandar40P
+$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="Pandar40P" frame_id:="Pandar40P"
+for Pandar40M
+$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="Pandar40M" frame_id:="Pandar40M"
+for PandarXT-32
+$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarXT-32" frame_id:="PandarXT-32"
+for PandarXT-16
+$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarXT-16" frame_id:="PandarXT-16"
 ```
 2. The driver will publish PointCloud messages to the topic `/pandar`  
 3. Open Rviz and add display by topic  
