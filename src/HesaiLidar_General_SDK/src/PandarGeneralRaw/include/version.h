@@ -21,7 +21,7 @@
 #include <unistd.h>
 #include <string>
 
-#define VERSION "PandarGeneralROS_1.1.6"
+#define VERSION "PandarGeneralROS_1.1.7"
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -54,3 +54,12 @@ PandarGeneralROS_1.1.6
 ##modify
 1. Fix bug in caculate pointXYZ of PandarQT
 
+星期一, 29. 三月 2021 17:30下午 
+##version
+PandarGeneralROS_1.1.7
+
+##modify
+1. Support run as nodelet
+2. Add  print flag
+3. Set pthread priority of RecvTask
+

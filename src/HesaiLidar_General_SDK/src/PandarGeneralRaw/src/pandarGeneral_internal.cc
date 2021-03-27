@@ -19,6 +19,7 @@
 #include "src/input.h"
 #include "src/pandarGeneral_internal.h"
 #include "log.h"
+#include <sched.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -637,6 +638,15 @@ void PandarGeneral_Internal::Stop() {
 void PandarGeneral_Internal::RecvTask() {
   // LOG_FUNC();
   int ret = 0;
+  sched_param param;
+  int ret_policy;
+  // SCHED_FIFO和SCHED_RR
+  param.sched_priority = 99;
+  int rc = pthread_setschedparam(pthread_self(), SCHED_RR, &param);
+  printf("publishRawDataThread:set result [%d]\n", rc);
+  pthread_getschedparam(pthread_self(), &ret_policy, &param);
+  printf("publishRawDataThread:get thead %lu, policy %d and priority %d\n",
+           pthread_self(), ret_policy, param.sched_priority);
   while (enable_lidar_recv_thr_) {
     PandarPacket pkt;
     int rc = input_->getPacket(&pkt);

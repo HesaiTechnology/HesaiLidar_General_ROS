@@ -38,8 +38,7 @@ $ git clone https://github.com/HesaiTechnology/HesaiLidar_General_ROS.git --recu
 **Build**
 ```
 $ cd ..
-$ catkin config --install
-$ catkin build --force-cmake
+$ catkin_make -DCMAKE_BUILD_TYPE=Release
 ```
 
 ## Configuration 
@@ -81,7 +80,7 @@ Make sure the parameter "namespace" in file hesai_lidar.launch is same with the 
 
 1. Make sure current path in the `rosworkspace` directory
 ```
-$ source install/setup.bash
+$ source devel/setup.bash
 ```
 ```
 for PandarQT
@@ -132,3 +131,22 @@ $ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarXT-16" frame_id:
 2. The driver will publish PointCloud messages to the topic `/pandar`  
 3. Open Rviz and add display by topic  
 4. Change fixed frame to frame_id to view published point clouds  
+
+## Details of launch file parameters and utilities
+|Parameter | Default Value|
+|---------|---------------|
+|pcap_file|Path of the pcap file, once not empty, driver will get data from pcap file instead of a connected Lidar|
+|server_ip|The IP address of connected Lidar, will be used to get calibration file|
+|lidar_recv_port|The destination port of Lidar, driver will monitor this port to get point cloud packets from Lidar|
+|gps_port|The destination port for Lidar GPS packets, driver will monitor this port to get GPS packets from Lidar|
+|start_angle|Driver will publish one frame point cloud data when azimuth angel step over start_angle, make sure set to within FOV|
+|lidar_type|Lidar module type|
+|frame_id|frame id of published messages|
+|pcldata_type|0:mixed point cloud data type  1:structured point cloud data type|
+|publish_type|default "points":publish point clouds "raw":publish raw UDP packets "both":publish point clouds and UDP packets|
+|timestamp_type|default "": use timestamp from Lidar "realtime" use timestamp from the system  driver running on|
+|data_type|default "":driver will get point cloud packets from Lidar or PCAP "rosbag":driver will subscribe toic /pandar_packets to get point cloud packets|
+|namespace|namesapce of the launching node|
+|lidar_correction_file|Path of correction file, will be used when not able to get correction file from a connected Liar|
+|multicast_ip|The multicast IP address of connected Lidar, will be used to get udp packets from multicast ip address|
+

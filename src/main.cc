@@ -6,6 +6,7 @@
 #include <pcl/point_types.h>
 #include "pandarGeneral_sdk/pandarGeneral_sdk.h"
 #include <fstream>
+#define PRINT_FLAG (false)
 
 using namespace std;
 
@@ -99,16 +100,19 @@ public:
       sensor_msgs::PointCloud2 output;
       pcl::toROSMsg(*cld, output);
       lidarPublisher.publish(output);
-      printf("timestamp: %f, point size: %ld.\n",timestamp, cld->points.size());
+      if(PRINT_FLAG)
+        printf("timestamp: %f, point size: %ld.\n",timestamp, cld->points.size());
     }
     if(m_sPublishType == "both" || m_sPublishType == "raw"){
       packetPublisher.publish(scan);
-      printf("raw size: %d.\n", scan->packets.size());
+      if(PRINT_FLAG)
+        printf("raw size: %d.\n", scan->packets.size());
     }
   }
 
   void gpsCallback(int timestamp) {
-    printf("gps: %d\n", timestamp);
+    if(PRINT_FLAG)
+      printf("gps: %d\n", timestamp);
   }
 
   void scanCallback(const hesai_lidar::PandarScanPtr scan)
