@@ -689,19 +689,12 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
 
 
   while (enable_lidar_process_thr_) {
-    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-      std::cout << "get time error" << std::endl;
-    }
-
-    ts.tv_sec += 1;
-    if (sem_timedwait(&lidar_sem_, &ts) == -1) {
+    if (!m_PacketsBuffer.hasEnoughPackets()) {
+      usleep(1000);
       continue;
     }
-    pthread_mutex_lock(&lidar_lock_);
-    PandarPacket packet = lidar_packets_.front();
-    lidar_packets_.pop_front();
-    pthread_mutex_unlock(&lidar_lock_);
-    // memcpy(&rawpacket, &packet, 1512);
+    PandarPacket packet = *(m_PacketsBuffer.getIterCalc());
+    m_PacketsBuffer.moveIterCalc();
     rawpacket.stamp.sec = floor(packet.stamp);
     rawpacket.stamp.nsec = (packet.stamp - floor(packet.stamp))*1000000000;
     rawpacket.size = packet.size;
@@ -899,10 +892,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
 }
 
 void PandarGeneral_Internal::PushLiDARData(PandarPacket packet) {
-  pthread_mutex_lock(&lidar_lock_);
-  lidar_packets_.push_back(packet);
-  sem_post(&lidar_sem_);
-  pthread_mutex_unlock(&lidar_lock_);
+  m_PacketsBuffer.push_back(packet);
 }
 
 void PandarGeneral_Internal::ProcessGps(const PandarGPS &gpsMsg) {
