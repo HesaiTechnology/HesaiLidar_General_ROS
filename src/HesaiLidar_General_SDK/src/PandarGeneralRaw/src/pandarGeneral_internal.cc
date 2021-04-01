@@ -89,7 +89,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle, int tz,
     int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType,
-    std::string lidar_correction_file, std::string multicast_ip) {
+    std::string lidar_correction_file, std::string multicast_ip, bool coordinate_correction_flag) {
       // LOG_FUNC();
   pthread_mutex_init(&lidar_lock_, NULL);
   sem_init(&lidar_sem_, 0, 0);
@@ -116,6 +116,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(
   m_dPktTimestamp = 0.0f;
   got_lidar_correction_flag = false;
   correction_file_path_ = lidar_correction_file;
+  m_bCoordinateCorrectionFlag = coordinate_correction_flag;
   Init();
 }
 
@@ -123,7 +124,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(std::string pcap_path, \
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> \
     pcl_callback, uint16_t start_angle, int tz, int pcl_type, \
     std::string lidar_type, std::string frame_id, std::string timestampType,
-    std::string lidar_correction_file) {
+    std::string lidar_correction_file, bool coordinate_correction_flag) {
   pthread_mutex_init(&lidar_lock_, NULL);
   sem_init(&lidar_sem_, 0, 0);
 
@@ -148,6 +149,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(std::string pcap_path, \
   m_dPktTimestamp = 0.0f;
   got_lidar_correction_flag = false;
   correction_file_path_ = lidar_correction_file;
+  m_bCoordinateCorrectionFlag = coordinate_correction_flag;
   Init();
 }
 
@@ -173,6 +175,31 @@ void PandarGeneral_Internal::Init() {
   for(int i = 0; i < MAX_AZIMUTH_DEGREE_NUM; ++i) {
     m_sin_azimuth_map_[i] = sinf(i * M_PI / 18000);
     m_cos_azimuth_map_[i] = cosf(i * M_PI / 18000);
+  }
+  m_sin_azimuth_map_h.resize(MAX_AZIMUTH_DEGREE_NUM);
+  m_cos_azimuth_map_h.resize(MAX_AZIMUTH_DEGREE_NUM);
+  for(int i = 0; i < MAX_AZIMUTH_DEGREE_NUM; ++i) {
+    if(m_sLidarType == "PandarXTM"){
+      m_sin_azimuth_map_h[i] = sinf(i * M_PI / 18000) * HS_LIDAR_XTM_COORDINATE_CORRECTION_H;
+      m_cos_azimuth_map_h[i] = cosf(i * M_PI / 18000) * HS_LIDAR_XTM_COORDINATE_CORRECTION_H;
+    }
+    else{
+      m_sin_azimuth_map_h[i] = sinf(i * M_PI / 18000) * HS_LIDAR_XT_COORDINATE_CORRECTION_H;
+      m_cos_azimuth_map_h[i] = cosf(i * M_PI / 18000) * HS_LIDAR_XT_COORDINATE_CORRECTION_H;
+    }
+  }
+  m_sin_azimuth_map_b.resize(MAX_AZIMUTH_DEGREE_NUM);
+  m_cos_azimuth_map_b.resize(MAX_AZIMUTH_DEGREE_NUM);
+  for(int i = 0; i < MAX_AZIMUTH_DEGREE_NUM; ++i) {
+    if(m_sLidarType == "PandarXTM"){
+      m_sin_azimuth_map_b[i] = sinf(i * M_PI / 18000) * HS_LIDAR_XTM_COORDINATE_CORRECTION_B;
+      m_cos_azimuth_map_b[i] = cosf(i * M_PI / 18000) * HS_LIDAR_XTM_COORDINATE_CORRECTION_B;
+    }
+    else{
+      m_sin_azimuth_map_b[i] = sinf(i * M_PI / 18000) * HS_LIDAR_XT_COORDINATE_CORRECTION_B;
+      m_cos_azimuth_map_b[i] = cosf(i * M_PI / 18000) * HS_LIDAR_XT_COORDINATE_CORRECTION_B;
+    }
+      
   }
   if (pcl_type_) {
     for (int i = 0; i < MAX_LASER_NUM; i++) {
@@ -848,7 +875,8 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
       }
     } 
     else if((packet.size == HS_LIDAR_XT_PACKET_SIZE && (m_sLidarType == "XT" || m_sLidarType == "PandarXT-32")) || \
-        (packet.size == HS_LIDAR_XT16_PACKET_SIZE && (m_sLidarType == "PandarXT-16"))) {
+        (packet.size == HS_LIDAR_XT16_PACKET_SIZE && (m_sLidarType == "PandarXT-16")) || \
+        (packet.size == HS_LIDAR_XTM_PACKET_SIZE && (m_sLidarType == "PandarXTM"))) {
       HS_LIDAR_XT_Packet pkt;
       ret = ParseXTData(&pkt, packet.data, packet.size);
       if (ret != 0) {
@@ -1561,60 +1589,69 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
       azimuth += 36000;
     if(azimuth > 36000)
       azimuth -= 36000;
-    if (m_sin_elevation_map_[i] != 0){
-      float c = (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG +
-                HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT - 
-                unit.distance * unit.distance) * 
-                m_sin_elevation_map_[i] * m_sin_elevation_map_[i];
-      float b = 2 * m_sin_elevation_map_[i] * m_cos_elevation_map_[i] * (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * m_cos_azimuth_map_[azimuth] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT * m_sin_azimuth_map_[azimuth]);
-      point.z = (- b + sqrt(b * b - 4 * c)) / 2;
-      point.x = point.z * m_sin_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
-      point.y = point.z * m_cos_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
-      if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
-         (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
-          point.z * m_sin_elevation_map_[i]) <= 0){
-        point.z = (- b - sqrt(b * b - 4 * c)) / 2;
+    if(m_bCoordinateCorrectionFlag){
+      if (m_sin_elevation_map_[i] != 0){
+        float c = (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG +
+                  HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT - 
+                  unit.distance * unit.distance) * 
+                  m_sin_elevation_map_[i] * m_sin_elevation_map_[i];
+        float b = 2 * m_sin_elevation_map_[i] * m_cos_elevation_map_[i] * (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * m_cos_azimuth_map_[azimuth] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT * m_sin_azimuth_map_[azimuth]);
+        point.z = (- b + sqrt(b * b - 4 * c)) / 2;
         point.x = point.z * m_sin_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
         point.y = point.z * m_cos_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
+        if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
+          (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
+            point.z * m_sin_elevation_map_[i]) <= 0){
+          point.z = (- b - sqrt(b * b - 4 * c)) / 2;
+          point.x = point.z * m_sin_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+          point.y = point.z * m_cos_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
+        }
       }
-    }
-    else if (m_cos_azimuth_map_[azimuth] != 0){
-      float tan_azimuth = m_sin_azimuth_map_[azimuth] / m_cos_azimuth_map_[azimuth];
-      float c = (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) *
-                (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) - 
-                unit.distance * unit.distance;
-      float a = 1 + tan_azimuth * tan_azimuth;
-      float b = - 2 * tan_azimuth * (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT);
-      point.z = 0;
-      point.y = (- b + sqrt(b * b - 4 * a * c)) / (2 * a);
-      point.x = (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * tan_azimuth - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
-      if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
-         (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
-          point.z * m_sin_elevation_map_[i]) <= 0){
+      else if (m_cos_azimuth_map_[azimuth] != 0){
+        float tan_azimuth = m_sin_azimuth_map_[azimuth] / m_cos_azimuth_map_[azimuth];
+        float c = (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) *
+                  (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) - 
+                  unit.distance * unit.distance;
+        float a = 1 + tan_azimuth * tan_azimuth;
+        float b = - 2 * tan_azimuth * (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT);
         point.z = 0;
-        point.y = (- b - sqrt(b * b - 4 * a * c)) / (2 * a);
+        point.y = (- b + sqrt(b * b - 4 * a * c)) / (2 * a);
         point.x = (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * tan_azimuth - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+        if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
+          (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
+            point.z * m_sin_elevation_map_[i]) <= 0){
+          point.z = 0;
+          point.y = (- b - sqrt(b * b - 4 * a * c)) / (2 * a);
+          point.x = (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * tan_azimuth - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+        }
       }
-    }
-    else {
-      point.x = sqrt(unit.distance * unit.distance - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG);
-      point.y = HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
-      point.z = 0;
-      if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
-         (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
-          point.z * m_sin_elevation_map_[i]) <= 0){
-        point.x = - sqrt(unit.distance * unit.distance - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG);
+      else {
+        point.x = sqrt(unit.distance * unit.distance - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG);
         point.y = HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
         point.z = 0;
+        if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
+          (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
+            point.z * m_sin_elevation_map_[i]) <= 0){
+          point.x = - sqrt(unit.distance * unit.distance - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG);
+          point.y = HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
+          point.z = 0;
+        }
       }
+      if (COORDINATE_CORRECTION_CHECK){
+        float xyDistance = unit.distance * m_cos_elevation_map_[i];
+        float point_x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]); // without coordinate correction 
+        float point_y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
+        float point_z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+        printf("distance = %f; elevation = %f; azimuth = %f; delta X = %f; delta Y = %f; delta Z = %f; \n", 
+              unit.distance, pandarGeneral_elev_angle_map[i], float(azimuth / 100), point.x - point_x, point.y - point_y, point.z - point_z);
+      }
+
     }
-    if (COORDINATE_CORRECTION_CHECK){
+    else{
       float xyDistance = unit.distance * m_cos_elevation_map_[i];
-      float point_x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]); // without coordinate correction 
-      float point_y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
-      float point_z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
-      printf("distance = %f; elevation = %f; azimuth = %f; delta X = %f; delta Y = %f; delta Z = %f; \n", 
-             unit.distance, pandarGeneral_elev_angle_map[i], float(azimuth / 100), point.x - point_x, point.y - point_y, point.z - point_z);
+      point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]); // without coordinate correction 
+      point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
+      point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
     }
     point.intensity = unit.intensity;
 
@@ -1686,21 +1723,30 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
       azimuth += 36000;
     if(azimuth > 36000)
       azimuth -= 36000;
-    float distance = unit.distance - (HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_cos_azimuth_map_[abs(int(General_horizatal_azimuth_offset_map_[i] * 100))] * m_cos_elevation_map_[i] -
-                     HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_sin_azimuth_map_[abs(int(General_horizatal_azimuth_offset_map_[i] * 100))] * m_cos_elevation_map_[i]);
-    float xyDistance = distance * m_cos_elevation_map_[i];
-    point.x = xyDistance * m_sin_azimuth_map_[azimuth] - HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_cos_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_sin_azimuth_map_[azimuth];
-    point.y = xyDistance * m_cos_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_B * m_sin_azimuth_map_[azimuth] + HS_LIDAR_XT_COORDINATE_CORRECTION_H * m_cos_azimuth_map_[azimuth];
-    point.z = distance * m_sin_elevation_map_[i];
 
-    if (COORDINATE_CORRECTION_CHECK){
-      float xyDistance = unit.distance * m_cos_elevation_map_[i];
-      float point_x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
-      float point_y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
-      float point_z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
-      printf("distance = %f; elevation = %f; azimuth = %f; delta X = %f; delta Y = %f; delta Z = %f; \n", 
-             unit.distance, pandarGeneral_elev_angle_map[i], float(azimuth / 100), point.x - point_x, point.y - point_y, point.z - point_z);
+    if(m_bCoordinateCorrectionFlag){
+      float distance = unit.distance - (m_cos_azimuth_map_h[abs(int(General_horizatal_azimuth_offset_map_[i] * 100))] * m_cos_elevation_map_[i] -
+                      m_sin_azimuth_map_b[abs(int(General_horizatal_azimuth_offset_map_[i] * 100))] * m_cos_elevation_map_[i]);
+      float xyDistance = distance * m_cos_elevation_map_[i];
+      point.x = xyDistance * m_sin_azimuth_map_[azimuth] - m_cos_azimuth_map_b[azimuth] + m_sin_azimuth_map_h[azimuth];
+      point.y = xyDistance * m_cos_azimuth_map_[azimuth] + m_sin_azimuth_map_b[azimuth] + m_cos_azimuth_map_h[azimuth];
+      point.z = distance * m_sin_elevation_map_[i];
+
+      if (COORDINATE_CORRECTION_CHECK){
+        float xyDistance = unit.distance * m_cos_elevation_map_[i];
+        float point_x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
+        float point_y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
+        float point_z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+        printf("distance = %f; elevation = %f; azimuth = %f; delta X = %f; delta Y = %f; delta Z = %f; \n", 
+              unit.distance, pandarGeneral_elev_angle_map[i], float(azimuth / 100), point.x - point_x, point.y - point_y, point.z - point_z);
+      }
     }
+    else{
+      float xyDistance = unit.distance * m_cos_elevation_map_[i];
+      point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
+      point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
+      point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+    }  
     point.intensity = unit.intensity;
 
     if ("realtime" == m_sTimestampType) {

@@ -62,5 +62,5 @@ PandarGeneralROS_1.1.7
 1. Support run as nodelet
 2. Add  print flag
 3. Set pthread priority of RecvTask
-4. Optimize calculate efficiency
+4. Optimize calculation efficiency
 

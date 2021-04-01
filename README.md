@@ -149,4 +149,5 @@ $ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarXT-16" frame_id:
 |namespace|namesapce of the launching node|
 |lidar_correction_file|Path of correction file, will be used when not able to get correction file from a connected Liar|
 |multicast_ip|The multicast IP address of connected Lidar, will be used to get udp packets from multicast ip address|
+|coordinate_correction_flag|default "false":Disable coordinate correction "true":Enable coordinate correction|
 

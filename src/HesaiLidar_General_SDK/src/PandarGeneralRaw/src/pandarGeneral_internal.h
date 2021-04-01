@@ -141,6 +141,8 @@ HS_LIDAR_L64_7_BLOCK_PACKET_BODY_SIZE + HS_LIDAR_L64_PACKET_TAIL_WITHOUT_UDPSEQ_
 #define MAX_AZIMUTH_DEGREE_NUM (36000)
 #define HS_LIDAR_XT_COORDINATE_CORRECTION_H (0.0000315)
 #define HS_LIDAR_XT_COORDINATE_CORRECTION_B (0.000013)
+#define HS_LIDAR_XTM_COORDINATE_CORRECTION_H (0.0000305)
+#define HS_LIDAR_XTM_COORDINATE_CORRECTION_B (0.000013)
 #define HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG (0.0000298)
 #define HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT (0.0000072)
 #define HS_LIDAR_QT_COORDINATE_CORRECTION_F (0.0000295)
@@ -325,7 +327,7 @@ class PandarGeneral_Internal {
       boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)>
           pcl_callback, boost::function<void(double)> gps_callback, 
           uint16_t start_angle, int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType, // the default timestamp type is LiDAR time
-          std::string lidar_correction_file, std::string multicast_ip);
+          std::string lidar_correction_file, std::string multicast_ip, bool coordinate_correction_flag);
 
   /**
    * @brief Constructor
@@ -341,7 +343,7 @@ class PandarGeneral_Internal {
       boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> \
       pcl_callback, uint16_t start_angle, int tz, int pcl_type, \
       std::string lidar_type, std::string frame_id, std::string timestampType, // the default timestamp type is LiDAR time
-      std::string lidar_correction_file);
+      std::string lidar_correction_file, bool coordinate_correction_flag);
   ~PandarGeneral_Internal();
 
   /**
@@ -458,9 +460,14 @@ class PandarGeneral_Internal {
   std::vector<float> m_cos_azimuth_map_;
   std::vector<float> m_sin_elevation_map_;
   std::vector<float> m_cos_elevation_map_;
+  std::vector<float> m_sin_azimuth_map_h;
+  std::vector<float> m_cos_azimuth_map_h;
+  std::vector<float> m_sin_azimuth_map_b;
+  std::vector<float> m_cos_azimuth_map_b;
   bool got_lidar_correction_flag;
   std::string correction_file_path_;
   PacketsBuffer m_PacketsBuffer;
+  bool m_bCoordinateCorrectionFlag;
 
 };
 
