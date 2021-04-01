@@ -19,4 +19,11 @@
   <depend>libpcl-all-dev</depend>
   <depend>image_transport</depend>
   <depend>pcl_conversions</depend>
+  <build_depend>nodelet</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <exec_depend>nodelet</exec_depend>
+  <exec_depend>pluginlib</exec_depend>
+  <export>
+    <nodelet plugin="${prefix}/nodelets.xml"/>
+  </export>
 </package>

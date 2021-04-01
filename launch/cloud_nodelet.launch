@@ -16,8 +16,11 @@
 	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/Pandar64.csv"/>
 	<arg name="multicast_ip"  default=""/>
 	<arg name="coordinate_correction_flag"  default="false"/>
-
-	<node pkg="hesai_lidar" name="hesai_lidar" ns="$(arg namespace)" type="hesai_lidar_node" output="screen" >
+	<arg name="manager" default="pandar_nodelet_manager" />
+	 <!-- start nodelet manager -->
+	<!-- <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" /> -->
+    <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" output="screen" />
+	<node pkg="nodelet" type="nodelet" name="$(arg manager)_cloud" args="load pandar_pointcloud/CloudNodelet $(arg manager)" output="screen">
 		<param name="pcap_file" type="string" value="$(arg pcap_file)"/>
 		<param name="server_ip" type="string" value="$(arg server_ip)"/>
 		<param name="lidar_recv_port"  type="int" value="$(arg lidar_recv_port)"/>

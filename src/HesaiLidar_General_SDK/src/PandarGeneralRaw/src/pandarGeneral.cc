@@ -31,11 +31,11 @@ PandarGeneral::PandarGeneral(
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle, int tz,
     int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType,
-    std::string lidar_correction_file, std::string multicast_ip) {
+    std::string lidar_correction_file, std::string multicast_ip, bool coordinate_correction_flag) {
       // LOG_FUNC();
   internal_ =
       new PandarGeneral_Internal(device_ip, lidar_port, gps_port, pcl_callback,
-                             gps_callback, start_angle, tz, pcl_type, lidar_type, frame_id, timestampType, lidar_correction_file, multicast_ip);
+                             gps_callback, start_angle, tz, pcl_type, lidar_type, frame_id, timestampType, lidar_correction_file, multicast_ip, coordinate_correction_flag);
 }
 
 /**
@@ -50,9 +50,9 @@ PandarGeneral::PandarGeneral(
     std::string pcap_path, \
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> pcl_callback,\
     uint16_t start_angle, int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType, 
-    std::string lidar_correction_file) {
+    std::string lidar_correction_file, bool coordinate_correction_flag) {
   internal_ = new PandarGeneral_Internal(pcap_path, pcl_callback, start_angle, \
-      tz, pcl_type, lidar_type, frame_id, timestampType, lidar_correction_file);
+      tz, pcl_type, lidar_type, frame_id, timestampType, lidar_correction_file, coordinate_correction_flag);
 }
 
 /**

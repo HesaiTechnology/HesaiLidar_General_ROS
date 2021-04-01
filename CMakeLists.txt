@@ -99,6 +99,22 @@ target_link_libraries(hesai_lidar_node
     PandarGeneralSDK
 )
 
+add_library(cloud_nodelet src/cloud_nodelet.cc)
+
+target_include_directories(cloud_nodelet PRIVATE
+    src/HesaiLidar_General_SDK/include
+    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
+    ${PCL_INCLUDE_DIRS}
+    ${catkin_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(cloud_nodelet
+    ${catkin_LIBRARIES}
+    ${PCL_IO_LIBRARIES}
+    PandarGeneralSDK
+)
+
 install(TARGETS
     hesai_lidar_node
     PandarGeneral
