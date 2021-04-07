@@ -46,6 +46,7 @@ $ catkin_make -DCMAKE_BUILD_TYPE=Release
  $ gedit install/share/hesai_lidar/launch/hesai_lidar.launch
 ```
 **Reciving data from connected Lidar: config lidar ip&port, leave the pcap_file empty**
+
 |Parameter | Default Value|
 |---------|---------------|
 |server_ip |192.168.1.201|
@@ -58,6 +59,7 @@ Data source will be from connected Lidar when "pcap_file" set to empty, when "mu
 Make sure parameters above set to the same with Lidar setting
 
 **Reciving data from pcap file: config pcap_file and correction file path**
+
 |Parameter | Value|
 |---------|---------------|
 |pcap_file |pcap file path|
@@ -66,6 +68,7 @@ Make sure parameters above set to the same with Lidar setting
 Data source will be from pcap file once "pcap_file" not empty 
 
 **Reciving data from rosbag: config data_type and publish_type,leave the pcap_file empty**
+
 |Parameter | Value|
 |---------|---------------|
 |pcap_file ||
