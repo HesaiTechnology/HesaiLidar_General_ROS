@@ -143,15 +143,20 @@ $ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarXTM" frame_id:="
 |server_ip|The IP address of connected Lidar, will be used to get calibration file|
 |lidar_recv_port|The destination port of Lidar, driver will monitor this port to get point clouds packets from Lidar|
 |gps_port|The destination port for Lidar GPS packets, driver will monitor this port to get GPS packets from Lidar|
-|start_angle|Driver will publish one frame point clouds data when azimuth angel step over start_angle, make sure set to within FOV|
+|start_angle|Driver will publish one frame point clouds data when azimuth angle step over start_angle, make sure set to within FOV|
 |lidar_type|Lidar module type|
 |frame_id|frame id of published messages|
-|pcldata_type|0:mixed point clouds data type  1:structured point clouds data type|
-|publish_type|default "points":publish point clouds "raw":publish raw UDP packets "both":publish point clouds and UDP packets|
-|timestamp_type|default "": use timestamp from Lidar "realtime" use timestamp from the system  driver running on|
-|data_type|default "":driver will get point clouds packets from Lidar or PCAP "rosbag":driver will subscribe toic /pandar_packets to get point clouds packets|
+|pcldata_type|0:mixed point clouds data type  
+1:structured point clouds data type|
+|publish_type|default "points":publish point clouds 
+"raw":publish raw UDP packets 
+"both":publish point clouds and UDP packets|
+|timestamp_type|default "": use timestamp from Lidar 
+"realtime" use timestamp from the system  driver running on|
+|data_type|default "":driver will get point clouds packets from Lidar or PCAP 
+"rosbag":driver will subscribe topic /pandar_packets to get point clouds packets|
 |namespace|namesapce of the launching node|
-|lidar_correction_file|Path of correction file, will be used when not able to get correction file from a connected Liar|
+|lidar_correction_file|Path of calibration file, will be used when not able to get calibration file from a connected Liar|
 |multicast_ip|The multicast IP address of connected Lidar, will be used to get udp packets from multicast ip address|
 |coordinate_correction_flag|default "false":Disable coordinate correction "true":Enable coordinate correction|
 
