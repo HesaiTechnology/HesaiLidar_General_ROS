@@ -555,6 +555,24 @@ void PandarGeneral_Internal::Init() {
     blockXTOffsetSingle_[i] = blockXTOffsetSingle[i];
     blockXTOffsetDual_[i] = blockXTOffsetDual[i];
   }
+
+  if (m_sLidarType == "PandarXTM") {
+    m_sin_elevation_map_.resize(HS_LIDAR_XT_UNIT_NUM);
+    m_cos_elevation_map_.resize(HS_LIDAR_XT_UNIT_NUM);
+    for (int i = 0; i < HS_LIDAR_XT_UNIT_NUM; i++) {
+      m_sin_elevation_map_[i] = sinf(degreeToRadian(pandarXTM_elev_angle_map[i]));
+      m_cos_elevation_map_[i] = cosf(degreeToRadian(pandarXTM_elev_angle_map[i]));
+      General_elev_angle_map_[i] = pandarXTM_elev_angle_map[i];
+      General_horizatal_azimuth_offset_map_[i] = pandarXTM_horizatal_azimuth_offset_map[i];
+      laserXTOffset_[i] = laserXTMOffset[i];
+    }
+    for (int i = 0; i < HS_LIDAR_XT_BLOCK_NUMBER; i++) {
+      blockXTOffsetSingle_[i] = blockXTMOffsetSingle[i];
+      blockXTOffsetDual_[i] = blockXTMOffsetDual[i];
+      blockXTOffsetTriple_[i] = blockXTMOffsetTriple[i];
+    }
+  }
+
   SetEnvironmentVariableTZ();
 }
 
@@ -1226,7 +1244,7 @@ int PandarGeneral_Internal::ParseQTData(HS_LIDAR_QT_Packet *packet,
 
 int PandarGeneral_Internal::ParseXTData(HS_LIDAR_XT_Packet *packet,
                                 const uint8_t *recvbuf, const int len) {
-  if (len != HS_LIDAR_XT_PACKET_SIZE && len != HS_LIDAR_XT16_PACKET_SIZE) {
+  if (len != HS_LIDAR_XT_PACKET_SIZE && len != HS_LIDAR_XT16_PACKET_SIZE && len != HS_LIDAR_XTM_PACKET_SIZE) {
     std::cout << "packet size mismatch PandarXT " << len << "," << \
         len << std::endl;
     return -1;
@@ -1756,7 +1774,13 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
       point.timestamp = unix_second + \
         (static_cast<double>(pkt->timestamp)) / 1000000.0;
 
-      if (pkt->echo == 0x39) {
+      if (pkt->echo == 0x3d){
+        point.timestamp =
+            point.timestamp + (static_cast<double>(blockXTOffsetTriple_[blockid] +
+                                                  laserXTOffset_[i]) /
+                              1000000.0f);
+      }
+      else if (pkt->echo == 0x39) {
         point.timestamp =
             point.timestamp + (static_cast<double>(blockXTOffsetDual_[blockid] +
                                                   laserXTOffset_[i]) /
