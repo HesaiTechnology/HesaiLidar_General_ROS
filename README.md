@@ -146,15 +146,10 @@ $ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarXTM" frame_id:="
 |start_angle|Driver will publish one frame point clouds data when azimuth angle step over start_angle, make sure set to within FOV|
 |lidar_type|Lidar module type|
 |frame_id|frame id of published messages|
-|pcldata_type|0:mixed point clouds data type  
-1:structured point clouds data type|
-|publish_type|default "points":publish point clouds 
-"raw":publish raw UDP packets 
-"both":publish point clouds and UDP packets|
-|timestamp_type|default "": use timestamp from Lidar 
-"realtime" use timestamp from the system  driver running on|
-|data_type|default "":driver will get point clouds packets from Lidar or PCAP 
-"rosbag":driver will subscribe topic /pandar_packets to get point clouds packets|
+|pcldata_type|0:mixed point clouds data type  1:structured point clouds data type|
+|publish_type|default "points":publish point clouds "raw":publish raw UDP packets "both":publish point clouds and UDP packets|
+|timestamp_type|default "": use timestamp from Lidar "realtime" use timestamp from the system  driver running on|
+|data_type|default "":driver will get point clouds packets from Lidar or PCAP "rosbag":driver will subscribe topic /pandar_packets to get point clouds packets|
 |namespace|namesapce of the launching node|
 |lidar_correction_file|Path of calibration file, will be used when not able to get calibration file from a connected Liar|
 |multicast_ip|The multicast IP address of connected Lidar, will be used to get udp packets from multicast ip address|
