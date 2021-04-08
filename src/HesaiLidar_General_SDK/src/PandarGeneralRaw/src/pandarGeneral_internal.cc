@@ -1780,7 +1780,7 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
                                                   laserXTOffset_[i]) /
                               1000000.0f);
       }
-      else if (pkt->echo == 0x39) {
+      else if (pkt->echo == 0x39 || pkt->echo == 0x3b || pkt->echo == 0x3c) {
         point.timestamp =
             point.timestamp + (static_cast<double>(blockXTOffsetDual_[blockid] +
                                                   laserXTOffset_[i]) /
