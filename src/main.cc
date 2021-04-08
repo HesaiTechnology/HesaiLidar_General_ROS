@@ -110,7 +110,7 @@ public:
       packetPublisher.publish(scan);
 #ifdef PRINT_FLAG
         printf("raw size: %d.\n", scan->packets.size());
-#endif;
+#endif
     }
   }
 

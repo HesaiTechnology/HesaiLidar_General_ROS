@@ -40,6 +40,7 @@ void PcapReader::initTimeIndexMap() {
   m_timeIndexMap.insert(std::pair<string,std::pair<int,int>>("Pandar20B", std::pair<int,int>(1258,1264)));
   m_timeIndexMap.insert(std::pair<string,std::pair<int,int>>("PandarXT-32", std::pair<int,int>(1071,1065)));
   m_timeIndexMap.insert(std::pair<string,std::pair<int,int>>("PandarXT-16", std::pair<int,int>(559,553)));
+  m_timeIndexMap.insert(std::pair<string,std::pair<int,int>>("PandarXTM", std::pair<int,int>(811,805)));
 }
 
 void PcapReader::start(boost::function<void(const uint8_t*, const int, double timestamp)> callback) {

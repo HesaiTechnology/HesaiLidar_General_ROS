@@ -448,6 +448,7 @@ class PandarGeneral_Internal {
 
   float blockXTOffsetSingle_[HS_LIDAR_XT_BLOCK_NUMBER];
   float blockXTOffsetDual_[HS_LIDAR_XT_BLOCK_NUMBER];
+  float blockXTOffsetTriple_[HS_LIDAR_XT_BLOCK_NUMBER];
   float laserXTOffset_[HS_LIDAR_XT_UNIT_NUM];
 
   int tz_second_;

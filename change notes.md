@@ -64,3 +64,10 @@ PandarGeneralROS_1.1.7
 3. Set pthread priority of RecvTask
 4. Optimize calculation efficiency
 
+Wednesday, April 6th, 2021 17:30
+##version
+PandarGeneralSDK_1.1.8
+
+##modify
+1. Support XTM
+
