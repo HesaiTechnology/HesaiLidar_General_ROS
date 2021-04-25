@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
     image_transport
     pcl_conversions
     message_generation
+    tf
 )
 add_message_files(
     FILES

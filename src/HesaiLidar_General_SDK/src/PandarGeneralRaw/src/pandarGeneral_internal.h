@@ -34,6 +34,9 @@
 #include "src/pcap_reader.h"
 #include "hesai_lidar/PandarScan.h"
 #include "hesai_lidar/PandarPacket.h"
+#include <tf2_ros/transform_listener.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <Eigen/Dense>
 
 #define SOB_ANGLE_SIZE (4)
 #define RAW_MEASURE_SIZE (3)
@@ -327,7 +330,8 @@ class PandarGeneral_Internal {
       boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)>
           pcl_callback, boost::function<void(double)> gps_callback, 
           uint16_t start_angle, int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType, // the default timestamp type is LiDAR time
-          std::string lidar_correction_file, std::string multicast_ip, bool coordinate_correction_flag);
+          std::string lidar_correction_file, std::string multicast_ip, bool coordinate_correction_flag,
+          std::string target_frame, std::string fixed_frame);
 
   /**
    * @brief Constructor
@@ -343,7 +347,8 @@ class PandarGeneral_Internal {
       boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> \
       pcl_callback, uint16_t start_angle, int tz, int pcl_type, \
       std::string lidar_type, std::string frame_id, std::string timestampType, // the default timestamp type is LiDAR time
-      std::string lidar_correction_file, bool coordinate_correction_flag);
+      std::string lidar_correction_file, bool coordinate_correction_flag, \
+      std::string target_frame, std::string fixed_frame);
   ~PandarGeneral_Internal();
 
   /**
@@ -392,6 +397,12 @@ class PandarGeneral_Internal {
   void EmitBackMessege(char chLaserNumber, boost::shared_ptr<PPointCloud> cld, hesai_lidar::PandarScanPtr scan);
   void SetEnvironmentVariableTZ();
   hesai_lidar::PandarPacket SaveCorrectionFile(int laserNumber);
+
+  bool calculateTransformMatrix(Eigen::Affine3f& matrix, const std::string& target_frame, const std::string& source_frame, const ros::Time& time);
+  void manage_tf_buffer();
+  bool computeTransformToTarget(const ros::Time &scan_time);
+  bool computeTransformToFixed(const ros::Time &packet_time) ;
+  void transformPoint(float& x, float& y, float& z);
   pthread_mutex_t lidar_lock_;
   sem_t lidar_sem_;
   boost::thread *lidar_recv_thr_;
@@ -452,7 +463,7 @@ class PandarGeneral_Internal {
   float laserXTOffset_[HS_LIDAR_XT_UNIT_NUM];
 
   int tz_second_;
-  std::string frame_id_;
+  std::string m_sFrameId;
   int pcl_type_;
   PcapReader *pcap_reader_;
   bool connect_lidar_;
@@ -469,6 +480,13 @@ class PandarGeneral_Internal {
   std::string correction_file_path_;
   PacketsBuffer m_PacketsBuffer;
   bool m_bCoordinateCorrectionFlag;
+  std::shared_ptr<tf2_ros::TransformListener> m_tf_listener;
+  std::shared_ptr<tf2_ros::Buffer> m_tf_buffer;
+  Eigen::Affine3f m_tf_matrix_to_fixed;
+  Eigen::Affine3f m_tf_matrix_to_target;
+  std::string m_sSensorFrame;
+  std::string m_sFixedFrame;
+  std::string m_sTargetFrame;
 
 };
 
