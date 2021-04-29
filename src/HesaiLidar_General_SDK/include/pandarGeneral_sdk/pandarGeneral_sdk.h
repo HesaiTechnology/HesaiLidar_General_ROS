@@ -30,6 +30,7 @@
 #include "pandarGeneral/pandarGeneral.h"
 #include "pandarGeneral/point_types.h"
 #include "hesai_lidar/PandarScan.h"
+#include <boost/thread.hpp>
 
 //class PandarGeneralSDK_Internal;
 

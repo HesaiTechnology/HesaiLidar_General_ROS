@@ -2,9 +2,11 @@ cmake_minimum_required(VERSION 2.8.3)
 project(hesai_lidar)
 
 # Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
 
-find_package(Boost REQUIRED )
+ADD_COMPILE_OPTIONS(-std=c++11 )
+ADD_COMPILE_OPTIONS(-std=c++14 )
+
+find_package( Boost REQUIRED  COMPONENTS thread)
 find_package(PCL REQUIRED)
 
 find_package(PkgConfig REQUIRED)
@@ -53,6 +55,7 @@ target_include_directories(PandarGeneral PRIVATE
 target_link_libraries(PandarGeneral
     ${Boost_LIBRARIES}
     ${PCL_IO_LIBRARIES}
+    Boost::thread
     pcap
 )
 
@@ -78,6 +81,7 @@ target_link_libraries(PandarGeneralSDK
     ${PCL_IO_LIBRARIES}
     ${YAML_CPP_LIBRARIES}
     ${catkin_LIBRARIES}
+    Boost::thread
     pcap
 )
 
