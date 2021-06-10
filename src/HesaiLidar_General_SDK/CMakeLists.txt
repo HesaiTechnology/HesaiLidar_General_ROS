@@ -31,18 +31,17 @@ target_link_libraries(${PROJECT_NAME}
     Boost::thread
     pcap
 )
+# if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+#     find_package(PCL REQUIRED)
+#     add_executable(PandarGeneralTest
+#         test/test.cc
+#     )
 
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-    find_package(PCL REQUIRED)
-    add_executable(PandarGeneralTest
-        test/test.cc
-    )
-
-    target_link_libraries(PandarGeneralTest
-        ${PROJECT_NAME}
-        ${Boost_LIBRARIES}
-        ${PCL_IO_LIBRARIES}
-        Boost::thread
-    )
-endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+#     target_link_libraries(PandarGeneralTest
+#         ${PROJECT_NAME}
+#         ${Boost_LIBRARIES}
+#         ${PCL_IO_LIBRARIES}
+#         Boost::thread
+#     )
+# endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
 

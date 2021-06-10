@@ -1,4 +1,4 @@
-<library path="lib/libcloud_nodelet">
+<!-- <library path="lib/libcloud_nodelet">
   <class name="pandar_pointcloud/CloudNodelet"
          type="pandar_pointcloud::CloudNodelet"
          base_class_type="nodelet::Nodelet">
@@ -6,4 +6,4 @@
       Aggregates points from multiple packets, publishing PointCloud2.
     </description>
   </class>
-</library>
+</library> -->

@@ -10,6 +10,6 @@
 # tail		timestamp + factory + reserve + rpm
 # packet	block * 6 + tail
 
-time stamp
+float64 stamp
 uint8[] data
 uint32 size

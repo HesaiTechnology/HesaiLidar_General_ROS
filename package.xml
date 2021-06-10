@@ -1,29 +1,23 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>hesai_lidar</name>
-  <version>0.2.0</version>
-  <description>
-    The hesai_lidar package includes the driver for the Heisai PandarQT/Pandar64/Pandar40P/Pandar20A/Pandar20B/Pandar40M LiDAR sensor.
-  </description>
-  <maintainer email="wuxiaozhou@hesaitech.com">hesaiwuxiaozhou</maintainer>
-  <license>Apache 2</license>
+  <version>0.9.2</version>
+  <description>Contains message and service definitions used by the examples.</description>
+  <maintainer email="zhangyu@hesaitech.com">Jacob Perron</maintainer>
+  <license>Apache License 2.0</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-
-  <depend>roscpp</depend>
-  <depend>roslib</depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>message_runtime</depend>
-  <depend>yaml-cpp</depend>
-  <depend>libpcl-all-dev</depend>
-  <depend>image_transport</depend>
+  <!-- <depend>libpcl-all-dev</depend> -->
   <depend>pcl_conversions</depend>
-  <build_depend>nodelet</build_depend>
-  <build_depend>pluginlib</build_depend>
-  <exec_depend>nodelet</exec_depend>
-  <exec_depend>pluginlib</exec_depend>
+  <depend>ament_index_cpp</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_action</depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
   <export>
-    <nodelet plugin="${prefix}/nodelets.xml"/>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

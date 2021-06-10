@@ -1,44 +1,41 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(hesai_lidar)
 
-# Compile as C++11, supported in ROS Kinetic and newer
-
-ADD_COMPILE_OPTIONS(-std=c++11 )
-ADD_COMPILE_OPTIONS(-std=c++14 )
-
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 find_package( Boost REQUIRED  COMPONENTS thread)
-find_package(PCL REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system)
+# find_package(PCL REQUIRED)
+find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(rosidl_typesupport_c REQUIRED) 
+find_package(rosidl_default_generators REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+# install(FILES DESTINATION share/${PROJECT_NAME})
+# ament_export_dependencies(rosidl_default_runtime)
+# ament_export_dependencies(rosidl_default_runtime)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
-find_path(YAML_CPP_INCLUDE_DIR NAMES yaml_cpp.h PATHS ${YAML_CPP_INCLUDE_DIRS})
-find_library(YAML_CPP_LIBRARY NAMES YAML_CPP PATHS ${YAML_CPP_LIBRARIES})
-
-find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    roslib
-    std_msgs
-    sensor_msgs
-    message_runtime
-    image_transport
-    pcl_conversions
-    message_generation
-    tf
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+# find_path(YAML_CPP_INCLUDE_DIR NAMES yaml_cpp.h PATHS ${YAML_CPP_INCLUDE_DIRS})
+# find_library(YAML_CPP_LIBRARY NAMES YAML_CPP PATHS ${YAML_CPP_LIBRARIES})
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/PandarPacket.msg"
+  "msg/PandarScan.msg"
+  DEPENDENCIES builtin_interfaces 
 )
-add_message_files(
-    FILES
-    PandarPacket.msg
-    PandarScan.msg
-)
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
-catkin_package(
-    CATKIN_DEPENDS message_runtime
-)
-
-###PandarGeneralRaw
+find_package(PCL REQUIRED COMPONENTS io)
+ament_export_dependencies(rosidl_default_runtime)
+##PandarGeneralRaw
 add_library(PandarGeneral
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/input.cc
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral_internal.cc
@@ -50,14 +47,17 @@ target_include_directories(PandarGeneral PRIVATE
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/
     ${Boost_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS}
-    ${catkin_INCLUDE_DIRS}
+    # ${ament_INCLUDE_DIRS}
 )
 target_link_libraries(PandarGeneral
     ${Boost_LIBRARIES}
     ${PCL_IO_LIBRARIES}
     Boost::thread
     pcap
+    # ${ament_LIBRARIES}
 )
+
+rosidl_target_interfaces(PandarGeneral  ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 ###PandarGeneralSDK
 add_library(PandarGeneralSDK SHARED
@@ -71,68 +71,54 @@ target_include_directories(PandarGeneralSDK PRIVATE
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
     ${Boost_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS}
-    ${YAML_CPP_INCLUDE_DIRS}
-    ${catkin_INCLUDE_DIRS}
+    # ${YAML_CPP_INCLUDE_DIRS}
 )
 
 target_link_libraries(PandarGeneralSDK 
     PandarGeneral
     ${Boost_LIBRARIES}
     ${PCL_IO_LIBRARIES}
-    ${YAML_CPP_LIBRARIES}
-    ${catkin_LIBRARIES}
+    # ${YAML_CPP_LIBRARIES}
     Boost::thread
     pcap
 )
+rosidl_target_interfaces(PandarGeneralSDK   ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
-###hesai node
+
+##hesai node
 add_executable(hesai_lidar_node
-    src/main.cc
+    src/main_ros2.cc
+)
+ament_target_dependencies(hesai_lidar_node
+  "geometry_msgs"  # maybe don't need this
+  "ament_index_cpp"
+  "pcl_conversions"
+  "rcl_interfaces"
+  "rclcpp"
+  "rcutils"
+  "sensor_msgs"
+  "std_msgs"
+  "tf2_geometry_msgs"
 )
 
 target_include_directories(hesai_lidar_node PRIVATE
     src/HesaiLidar_General_SDK/include
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
     ${PCL_INCLUDE_DIRS}
-    ${catkin_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries(hesai_lidar_node 
-    ${catkin_LIBRARIES}
     ${PCL_IO_LIBRARIES}
+    ${Boost_SYSTEM_LIBRARY}
     PandarGeneralSDK
 )
 
-add_library(cloud_nodelet src/cloud_nodelet.cc)
+rosidl_target_interfaces(hesai_lidar_node  ${PROJECT_NAME} "rosidl_typesupport_cpp")
+install(TARGETS hesai_lidar_node
+  DESTINATION lib/${PROJECT_NAME})
 
-target_include_directories(cloud_nodelet PRIVATE
-    src/HesaiLidar_General_SDK/include
-    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
-    ${PCL_INCLUDE_DIRS}
-    ${catkin_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
-)
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME})
 
-target_link_libraries(cloud_nodelet
-    ${catkin_LIBRARIES}
-    ${PCL_IO_LIBRARIES}
-    PandarGeneralSDK
-)
-
-install(TARGETS
-    hesai_lidar_node
-    PandarGeneral
-    PandarGeneralSDK
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY launch/
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-)
-
-install(DIRECTORY config/
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
-)
+ament_package()

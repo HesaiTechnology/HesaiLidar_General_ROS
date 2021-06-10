@@ -21,7 +21,7 @@
 #include "log.h"
 #include <sched.h>
 #include <tf2_ros/transform_listener.h>
-#include <geometry_msgs/TransformStamped.h>
+// #include <geometry_msgs/TransformStamped.h>
 #include <algorithm>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -88,7 +88,7 @@ static int iPointCloudIndex = 0;
 
 PandarGeneral_Internal::PandarGeneral_Internal(
     std::string device_ip, uint16_t lidar_port, uint16_t gps_port,
-    boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> pcl_callback,
+    boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::msg::PandarScan::SharedPtr)> pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle, int tz,
     int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType,
     std::string lidar_correction_file, std::string multicast_ip, bool coordinate_correction_flag,
@@ -139,7 +139,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(
 }
 
 PandarGeneral_Internal::PandarGeneral_Internal(std::string pcap_path, \
-    boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> \
+    boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::msg::PandarScan::SharedPtr)> \
     pcl_callback, uint16_t start_angle, int tz, int pcl_type, \
     std::string lidar_type, std::string frame_id, std::string timestampType,
     std::string lidar_correction_file, bool coordinate_correction_flag,
@@ -762,10 +762,10 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
   int ret = 0;
 
   boost::shared_ptr<PPointCloud> outMsg(new PPointCloud());
-  hesai_lidar::PandarScanPtr scan(new hesai_lidar::PandarScan);
-  hesai_lidar::PandarPacket rawpacket;
-  if(!computeTransformToTarget(ros::Time::now()))
-    return;
+  hesai_lidar::msg::PandarScan::SharedPtr scan(new hesai_lidar::msg::PandarScan);
+  hesai_lidar::msg::PandarPacket rawpacket;
+  // if(!computeTransformToTarget(ros::Time::now()))
+  //   return;
 
   while (enable_lidar_process_thr_) {
     if (!m_PacketsBuffer.hasEnoughPackets()) {
@@ -774,8 +774,8 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
     }
     PandarPacket packet = *(m_PacketsBuffer.getIterCalc());
     m_PacketsBuffer.moveIterCalc();
-    rawpacket.stamp.sec = floor(packet.stamp);
-    rawpacket.stamp.nsec = (packet.stamp - floor(packet.stamp))*1000000000;
+    rawpacket.stamp = packet.stamp;
+    // rawpacket.stamp.nsec = (packet.stamp - floor(packet.stamp))*1000000000;
     rawpacket.size = packet.size;
     rawpacket.data.resize(packet.size);
     memcpy(&rawpacket.data[0], &packet.data[0], packet.size);
@@ -783,9 +783,9 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
     // printf("##m_dPktTimestamp: %lf\n", m_dPktTimestamp);
 
     if (packet.size == PACKET_SIZE || packet.size == PACKET_SIZE + SEQ_NUM_SIZE) {
-      manage_tf_buffer();
-      if(!computeTransformToFixed(rawpacket.stamp))
-        return; // target frame not available
+      // manage_tf_buffer();
+      // if(!computeTransformToFixed(rawpacket.stamp))
+      //   return; // target frame not available
       Pandar40PPacket pkt;
       ret = ParseRawData(&pkt, packet.data, packet.size);
 
@@ -813,8 +813,8 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               scan->packets.push_back(SaveCorrectionFile(LASER_COUNT));
               EmitBackMessege(LASER_COUNT, outMsg, scan);
               scan->packets.clear();
-              if(!computeTransformToTarget(rawpacket.stamp))
-                return; // target frame not available
+              // if(!computeTransformToTarget(rawpacket.stamp))
+              //   return; // target frame not available
             }
           }
         }
@@ -825,9 +825,9 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
         packet.size == HS_LIDAR_L64_7PACKET_SIZE || \
         packet.size == HS_LIDAR_L64_6PACKET_WITHOUT_UDPSEQ_SIZE || \
         packet.size == HS_LIDAR_L64_7PACKET_WITHOUT_UDPSEQ_SIZE) {
-      manage_tf_buffer();
-      if(!computeTransformToFixed(rawpacket.stamp))
-        return; // target frame not available
+      // manage_tf_buffer();
+      // if(!computeTransformToFixed(rawpacket.stamp))
+      //   return; // target frame not available
       HS_LIDAR_L64_Packet pkt;
       ret = ParseL64Data(&pkt, packet.data, packet.size);
 
@@ -854,8 +854,8 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
-              if(!computeTransformToTarget(rawpacket.stamp))
-                return; // target frame not available
+              // if(!computeTransformToTarget(rawpacket.stamp))
+              //   return; // target frame not available
             }
           }
         } else {
@@ -866,9 +866,9 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
         last_azimuth_ = pkt.blocks[i].azimuth;
       }
     } else if (HS_LIDAR_L20_PACKET_SIZE == packet.size) {
-      manage_tf_buffer();
-      if(!computeTransformToFixed(rawpacket.stamp))
-        return; // target frame not available
+      // manage_tf_buffer();
+      // if(!computeTransformToFixed(rawpacket.stamp))
+      //   return; // target frame not available
       HS_LIDAR_L20_Packet pkt;
       ret = ParseL20Data(&pkt, packet.data, packet.size);
 
@@ -895,8 +895,8 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
-              if(!computeTransformToTarget(rawpacket.stamp))
-                return; // target frame not available
+              // if(!computeTransformToTarget(rawpacket.stamp))
+              //   return; // target frame not available
             }
           }
         } else {
@@ -907,9 +907,9 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
       }
     } else if(packet.size == HS_LIDAR_QT_PACKET_SIZE || \
         packet.size == HS_LIDAR_QT_PACKET_WITHOUT_UDPSEQ_SIZE) {
-      manage_tf_buffer();
-      if(!computeTransformToFixed(rawpacket.stamp))
-        return; // target frame not available
+      // manage_tf_buffer();
+      // if(!computeTransformToFixed(rawpacket.stamp))
+      //   return; // target frame not available
       HS_LIDAR_QT_Packet pkt;
       ret = ParseQTData(&pkt, packet.data, packet.size);
       if (ret != 0) {
@@ -935,8 +935,8 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
-              if(!computeTransformToTarget(rawpacket.stamp))
-                return; // target frame not available
+              // if(!computeTransformToTarget(rawpacket.stamp))
+              //   return; // target frame not available
             }
           }
         } else {
@@ -949,9 +949,9 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
     else if((packet.size == HS_LIDAR_XT_PACKET_SIZE && (m_sLidarType == "XT" || m_sLidarType == "PandarXT-32")) || \
         (packet.size == HS_LIDAR_XT16_PACKET_SIZE && (m_sLidarType == "PandarXT-16")) || \
         (packet.size == HS_LIDAR_XTM_PACKET_SIZE && (m_sLidarType == "PandarXTM"))) {
-      manage_tf_buffer();
-      if(!computeTransformToFixed(rawpacket.stamp))
-        return; // target frame not available    
+      // manage_tf_buffer();
+      // if(!computeTransformToFixed(rawpacket.stamp))
+      //   return; // target frame not available    
       HS_LIDAR_XT_Packet pkt;
       ret = ParseXTData(&pkt, packet.data, packet.size);
       if (ret != 0) {
@@ -977,8 +977,8 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
               scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
-              if(!computeTransformToTarget(rawpacket.stamp))
-                return; // target frame not available
+              // if(!computeTransformToTarget(rawpacket.stamp))
+              //   return; // target frame not available
             }
           }
         } else {
@@ -1427,7 +1427,7 @@ void PandarGeneral_Internal::CalcPointXYZIT(Pandar40PPacket *pkt, int blockid,
     point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
     point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
     point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
-    transformPoint(point.x, point.y, point.z);  
+    // transformPoint(point.x, point.y, point.z);  
 
     point.intensity = unit.intensity;
 
@@ -1505,7 +1505,7 @@ void PandarGeneral_Internal::CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blo
     point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
     point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
     point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
-    transformPoint(point.x, point.y, point.z);  
+    // transformPoint(point.x, point.y, point.z);  
 
     point.intensity = unit.intensity;
 
@@ -1584,7 +1584,7 @@ void PandarGeneral_Internal::CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blo
     point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
     point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
     point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
-    transformPoint(point.x, point.y, point.z);  
+    // transformPoint(point.x, point.y, point.z);  
 
     point.intensity = unit.intensity;
 
@@ -1733,7 +1733,7 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
       point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
       point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
     }
-    transformPoint(point.x, point.y, point.z);  
+    // transformPoint(point.x, point.y, point.z);  
     point.intensity = unit.intensity;
 
     if ("realtime" == m_sTimestampType) {
@@ -1828,7 +1828,7 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
       point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
       point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
     }
-    transformPoint(point.x, point.y, point.z);  
+    // transformPoint(point.x, point.y, point.z);  
     point.intensity = unit.intensity;
 
     if ("realtime" == m_sTimestampType) {
@@ -1866,7 +1866,7 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
   }
 }
 
-void PandarGeneral_Internal::EmitBackMessege(char chLaserNumber, boost::shared_ptr<PPointCloud> cld, hesai_lidar::PandarScanPtr scan) {
+void PandarGeneral_Internal::EmitBackMessege(char chLaserNumber, boost::shared_ptr<PPointCloud> cld, hesai_lidar::msg::PandarScan::SharedPtr scan) {
   if (pcl_type_) {
     for (int i=0; i<chLaserNumber; i++) {
       for (int j=0; j<PointCloudList[i].size(); j++) {
@@ -1892,7 +1892,7 @@ void PandarGeneral_Internal::EmitBackMessege(char chLaserNumber, boost::shared_p
   }
 }
 
-void PandarGeneral_Internal::PushScanPacket(hesai_lidar::PandarScanPtr scan) {
+void PandarGeneral_Internal::PushScanPacket(hesai_lidar::msg::PandarScan::SharedPtr scan) {
   for(int i = 0; i < scan->packets.size(); i++) {
     if (scan->packets[i].data[0] == 0x47 && scan->packets[i].data[1] == 0x74){  //correction file
       if (got_lidar_correction_flag){
@@ -1950,7 +1950,7 @@ void PandarGeneral_Internal::PushScanPacket(hesai_lidar::PandarScanPtr scan) {
     }
     else {                                                                  //pcap
       PandarPacket pkt;
-      pkt.stamp = scan->packets[i].stamp.sec + scan->packets[i].stamp.nsec / 1000000000.0;
+      pkt.stamp = scan->packets[i].stamp;
       pkt.size = scan->packets[i].size;
       memcpy(&pkt.data[0], &(scan->packets[i].data[0]), scan->packets[i].size);
       PushLiDARData(pkt);
@@ -1986,8 +1986,8 @@ void PandarGeneral_Internal::SetEnvironmentVariableTZ(){
   }
 }
 
-hesai_lidar::PandarPacket PandarGeneral_Internal::SaveCorrectionFile(int laserNumber){
-  hesai_lidar::PandarPacket result;
+hesai_lidar::msg::PandarPacket PandarGeneral_Internal::SaveCorrectionFile(int laserNumber){
+  hesai_lidar::msg::PandarPacket result;
   std::stringstream content;
   content<< "Laser id,Elevation,Azimuth" << std::endl;
   for(int i = 0; i < laserNumber; i++){
@@ -2017,110 +2017,110 @@ void PandarGeneral_Internal::SetCorrectionFileFlag(bool flag ){
 }
 
 
-void PandarGeneral_Internal::manage_tf_buffer()
-  {
-    // check if sensor frame is already known, if not don't prepare tf buffer until setup was called
-    if ( m_sSensorFrame.empty())
-    {
-      return;
-    }
+// void PandarGeneral_Internal::manage_tf_buffer()
+//   {
+//     // check if sensor frame is already known, if not don't prepare tf buffer until setup was called
+//     if ( m_sSensorFrame.empty())
+//     {
+//       return;
+//     }
 
-    // avoid doing transformation when  m_sSensorFrame equals target frame and no ego motion compensation is perfomed
-    if (m_sFixedFrame.empty() &&  m_sSensorFrame == m_sTargetFrame)
-    {
-      // when the string is empty the points will not be transformed later on
-      m_sTargetFrame = "";
-      return;
-    }
+//     // avoid doing transformation when  m_sSensorFrame equals target frame and no ego motion compensation is perfomed
+//     if (m_sFixedFrame.empty() &&  m_sSensorFrame == m_sTargetFrame)
+//     {
+//       // when the string is empty the points will not be transformed later on
+//       m_sTargetFrame = "";
+//       return;
+//     }
 
-    // only use somewhat resource intensive tf listener when transformations are necessary
-    if (!m_sFixedFrame.empty() || !m_sTargetFrame.empty())
-    {
-      if (!m_tf_buffer)
-      {
-        m_tf_buffer = std::make_shared<tf2_ros::Buffer>();
-        m_tf_listener = std::make_shared<tf2_ros::TransformListener>(*m_tf_buffer);
-      }
-    }
-    else
-    {
-      m_tf_listener.reset();
-      m_tf_buffer.reset();
-    }
-  }
+//     // only use somewhat resource intensive tf listener when transformations are necessary
+//     if (!m_sFixedFrame.empty() || !m_sTargetFrame.empty())
+//     {
+//       if (!m_tf_buffer)
+//       {
+//         m_tf_buffer = std::make_shared<tf2_ros::Buffer>();
+//         m_tf_listener = std::make_shared<tf2_ros::TransformListener>(*m_tf_buffer);
+//       }
+//     }
+//     else
+//     {
+//       m_tf_listener.reset();
+//       m_tf_buffer.reset();
+//     }
+//   }
 
-  bool PandarGeneral_Internal::calculateTransformMatrix(Eigen::Affine3f& matrix, const std::string& target_frame,
-                                       const std::string& source_frame, const ros::Time& time)
-  {
-    if (!m_tf_buffer)
-    {
-      ROS_ERROR("tf buffer was not initialized yet");
-      return false;
-    }
+//   bool PandarGeneral_Internal::calculateTransformMatrix(Eigen::Affine3f& matrix, const std::string& target_frame,
+//                                        const std::string& source_frame, const ros::Time& time)
+//   {
+//     if (!m_tf_buffer)
+//     {
+//       ROS_ERROR("tf buffer was not initialized yet");
+//       return false;
+//     }
 
-    geometry_msgs::TransformStamped msg;
-    try
-    {
-      msg = m_tf_buffer->lookupTransform(target_frame, source_frame, time, ros::Duration(0.2));
-    }
-    catch (tf2::LookupException& e)
-    {
-      ROS_ERROR("%s", e.what());
-      return false;
-    }
-    catch (tf2::ExtrapolationException& e)
-    {
-      ROS_ERROR("%s", e.what());
-      return false;
-    }
+//     geometry_msgs::TransformStamped msg;
+//     try
+//     {
+//       msg = m_tf_buffer->lookupTransform(target_frame, source_frame, time, ros::Duration(0.2));
+//     }
+//     catch (tf2::LookupException& e)
+//     {
+//       ROS_ERROR("%s", e.what());
+//       return false;
+//     }
+//     catch (tf2::ExtrapolationException& e)
+//     {
+//       ROS_ERROR("%s", e.what());
+//       return false;
+//     }
 
-    const geometry_msgs::Quaternion& quaternion = msg.transform.rotation;
-    Eigen::Quaternionf rotation(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
+//     const geometry_msgs::Quaternion& quaternion = msg.transform.rotation;
+//     Eigen::Quaternionf rotation(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
 
-    const geometry_msgs::Vector3& origin = msg.transform.translation;
-    Eigen::Translation3f translation(origin.x, origin.y, origin.z);
+//     const geometry_msgs::Vector3& origin = msg.transform.translation;
+//     Eigen::Translation3f translation(origin.x, origin.y, origin.z);
 
-    matrix = translation * rotation;
-    return true;
-  }
+//     matrix = translation * rotation;
+//     return true;
+//   }
 
-  bool PandarGeneral_Internal::computeTransformToTarget(const ros::Time &scan_time)
-  {
-    if (m_sTargetFrame.empty())
-    {
-      // no need to calculate transform -> success
-      return true;
-    }
-    std::string& source_frame = m_sFixedFrame.empty() ?  m_sSensorFrame : m_sFixedFrame;
-    return calculateTransformMatrix(m_tf_matrix_to_target, m_sTargetFrame, source_frame, scan_time);
-  }
+//   bool PandarGeneral_Internal::computeTransformToTarget(const ros::Time &scan_time)
+//   {
+//     if (m_sTargetFrame.empty())
+//     {
+//       // no need to calculate transform -> success
+//       return true;
+//     }
+//     std::string& source_frame = m_sFixedFrame.empty() ?  m_sSensorFrame : m_sFixedFrame;
+//     return calculateTransformMatrix(m_tf_matrix_to_target, m_sTargetFrame, source_frame, scan_time);
+//   }
 
-  bool PandarGeneral_Internal::computeTransformToFixed(const ros::Time &packet_time)
-  {
-    if (m_sFixedFrame.empty())
-    {
-      // no need to calculate transform -> success
-      return true;
-    }
-    std::string &source_frame =  m_sSensorFrame;
-    return calculateTransformMatrix(m_tf_matrix_to_fixed, m_sFixedFrame, source_frame, packet_time);
-  }
+//   bool PandarGeneral_Internal::computeTransformToFixed(const ros::Time &packet_time)
+//   {
+//     if (m_sFixedFrame.empty())
+//     {
+//       // no need to calculate transform -> success
+//       return true;
+//     }
+//     std::string &source_frame =  m_sSensorFrame;
+//     return calculateTransformMatrix(m_tf_matrix_to_fixed, m_sFixedFrame, source_frame, packet_time);
+//   }
 
-  void PandarGeneral_Internal::transformPoint(float& x, float& y, float& z)
-  {
-    if(m_sFixedFrame.empty() && m_sTargetFrame.empty())
-      return;
-    Eigen::Vector3f p = Eigen::Vector3f(x, y, z);
-    if (!m_sFixedFrame.empty())
-    {
-      p = m_tf_matrix_to_fixed * p;
-    }
-    if (!m_sTargetFrame.empty())
-    {
-      p = m_tf_matrix_to_target * p;
-    }
-    x = p.x();
-    y = p.y();
-    z = p.z();
-  }
+//   void PandarGeneral_Internal::transformPoint(float& x, float& y, float& z)
+//   {
+//     if(m_sFixedFrame.empty() && m_sTargetFrame.empty())
+//       return;
+//     Eigen::Vector3f p = Eigen::Vector3f(x, y, z);
+//     if (!m_sFixedFrame.empty())
+//     {
+//       p = m_tf_matrix_to_fixed * p;
+//     }
+//     if (!m_sTargetFrame.empty())
+//     {
+//       p = m_tf_matrix_to_target * p;
+//     }
+//     x = p.x();
+//     y = p.y();
+//     z = p.z();
+//   }
 
