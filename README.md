@@ -7,28 +7,22 @@ HesaiLidar_General_ROS project includes the ROS Driver for：
 **PandarQT/Pandar64/Pandar40P/Pandar20A/Pandar20B/Pandar40M/PandarXT**  
 LiDAR sensor manufactured by Hesai Technology.  
 
-Developed based on [HesaiLidar_General_SDK](https://github.com/HesaiTechnology/HesaiLidar_General_SDK), After launched, the project will monitor UDP packets from Lidar, parse data and publish point clouds frames into ROS under topic: ```/pandar```. It can also be used as an official demo showing how to work with HesaiLidar_General_SDK.
+Developed based on [HesaiLidar_General_SDK](https://github.com/HesaiTechnology/HesaiLidar_General_SDK), After launched, the project will monitor UDP packets from Lidar, parse data and publish point clouds frames into ROS2 under topic: ```/pandar```. It can also be used as an official demo showing how to work with HesaiLidar_General_SDK.
 
 ## Environment and Dependencies
-**System environment requirement: Linux + ROS**  
+**System environment requirement: Linux + ROS2**  
 
 　Recommanded:  
-　Ubuntu 16.04 - with ROS kinetic desktop-full installed or  
-　Ubuntu 18.04 - with ROS melodic desktop-full installed  
-　Check resources on http://ros.org for installation guide 
+　Ubuntu - with ROS2 dashing desktop-full installed or  
+  Check resources on http://ros.org for installation guide 
  
-**Library Dependencies: libpcap-dev + libyaml-cpp-dev**  
+**Library Dependencies: libpcap-dev + libpcl-dev + libboost-dev**  
 ```
-$sudo apt install libpcap-dev libyaml-cpp-dev
+$sudo apt install libpcl-dev libpcap-dev  libboost-dev
 ```
 
 ## Download and Build
 
-**Install `catkin_tools`**
-```
-$ sudo apt-get update
-$ sudo apt-get install python-catkin-tools
-```
 **Download code**  
 ```
 $ mkdir -p rosworkspace/src
@@ -38,12 +32,13 @@ $ git clone https://github.com/HesaiTechnology/HesaiLidar_General_ROS.git --recu
 **Build**
 ```
 $ cd ..
-$ catkin_make -DCMAKE_BUILD_TYPE=Release
+$ source /opt/ros/dashing/setup.bash
+$ colcon build --symlink-install
 ```
 
 ## Configuration 
 ```
- $ gedit install/share/hesai_lidar/launch/hesai_lidar.launch
+ $ gedit install/share/hesai_lidar/launch/hesai_lidar_launch.py
 ```
 **Reciving data from connected Lidar: config lidar ip&port, leave the pcap_file empty**
 
@@ -79,65 +74,36 @@ Data source will be from rosbag when "pcap_file" is set to empty and "data_type"
 Make sure the parameter "publish_type" is set to "points"
 Make sure the parameter "namespace" in file hesai_lidar.launch is same with the namespace in rosbag
 
-## Run as independent node
+## Run 
 
 1. Make sure current path in the `rosworkspace` directory
 ```
-$ source devel/setup.bash
+$ . install/local_setup.bash
 ```
 ```
 for PandarQT
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarQT" frame_id:="PandarQT"
+$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="PandarQT" frame_id:="PandarQT"
 for Pandar64
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar64" frame_id:="Pandar64"
+$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="Pandar64" frame_id:="Pandar64"
 for Pandar20A
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20A" frame_id:="Pandar20A"
+$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="Pandar20A" frame_id:="Pandar20A"
 for Pandar20B
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar20B" frame_id:="Pandar20B"
+$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="Pandar20B" frame_id:="Pandar20B"
 for Pandar40P
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40P" frame_id:="Pandar40P"
+$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="Pandar40P" frame_id:="Pandar40P"
 for Pandar40M
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40M" frame_id:="Pandar40M"
+$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="Pandar40M" frame_id:="Pandar40M"
 for PandarXT-32
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-32" frame_id:="PandarXT-32"
+$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="PandarXT-32" frame_id:="PandarXT-32"
 for PandarXT-16
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXT-16" frame_id:="PandarXT-16"
+$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="PandarXT-16" frame_id:="PandarXT-16"
 for PandarXTM
-$ roslaunch hesai_lidar hesai_lidar.launch lidar_type:="PandarXTM" frame_id:="PandarXTM"
+$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="PandarXTM" frame_id:="PandarXTM"
 ```
 2. The driver will publish PointCloud messages to the topic `/pandar`  
-3. Open Rviz and add display by topic  
+3. Open Rviz2 and add display by topic  
 4. Change fixed frame to frame_id to view published point clouds  
 
-## Run as nodelet
-
-1. Make sure current path in the `rosworkspace` directory
-```
-$ source devel/setup.bash
-```
-```
-for PandarQT
-$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarQT" frame_id:="PandarQT"
-for Pandar64
-$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="Pandar64" frame_id:="Pandar64"
-for Pandar20A
-$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="Pandar20A" frame_id:="Pandar20A"
-for Pandar20B
-$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="Pandar20B" frame_id:="Pandar20B"
-for Pandar40P
-$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="Pandar40P" frame_id:="Pandar40P"
-for Pandar40M
-$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="Pandar40M" frame_id:="Pandar40M"
-for PandarXT-32
-$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarXT-32" frame_id:="PandarXT-32"
-for PandarXT-16
-$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarXT-16" frame_id:="PandarXT-16"
-for PandarXTM
-$ roslaunch hesai_lidar cloud_nodelet.launch lidar_type:="PandarXTM" frame_id:="PandarXTM"
-```
-2. The driver will publish PointCloud messages to the topic `/pandar`  
-3. Open Rviz and add display by topic  
-4. Change fixed frame to frame_id to view published point clouds  
 
 ## Details of launch file parameters and utilities
 |Parameter | Default Value|

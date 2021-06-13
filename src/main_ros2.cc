@@ -13,7 +13,7 @@
 #include <string>
 #include <functional>
 #include "std_msgs/msg/string.hpp"
-#define PRINT_FLAG 
+// #define PRINT_FLAG 
 
 using namespace std;
 namespace hesai_lidar
@@ -21,7 +21,7 @@ namespace hesai_lidar
 class HesaiLidarClient: public rclcpp::Node
 {
 public:
-  HesaiLidarClient():Node("hesai_lidar1")
+  HesaiLidarClient():Node("hesai_lidar")
   { 
     this->declare_parameter<std::string>("pcap_file", "");
     this->declare_parameter<std::string>("server_ip", "");
@@ -51,7 +51,7 @@ private:
   void lidarCallback(boost::shared_ptr<PPointCloud> cld, double timestamp, hesai_lidar::msg::PandarScan::SharedPtr scan) // the timestamp from first point cloud of cld
   {
     if(m_sPublishType == "both" || m_sPublishType == "points"){
-      // pcl_conversions::toPCL(ros::Time(timestamp), cld->header.stamp);
+      pcl_conversions::toPCL(rclcpp::Time(timestamp), cld->header.stamp);
       sensor_msgs::msg::PointCloud2 output;
       pcl::toROSMsg(*cld, output);
       lidarPublisher->publish(output);

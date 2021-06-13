@@ -66,8 +66,15 @@ PandarGeneralROS_1.1.7
 
 Wednesday, April 6th, 2021 17:30
 ##version
-PandarGeneralSDK_1.1.8
+PandarGeneralROS_1.1.8
 
 ##modify
 1. Support XTM
+
+Sunday, June 13th, 2021 17:30
+##version
+PandarGeneralROS_1.1.10
+
+##modify
+1. Support ROS2
 
