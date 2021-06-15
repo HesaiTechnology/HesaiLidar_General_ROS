@@ -84,55 +84,64 @@ $ . install/local_setup.bash
 ```
 $ gedit install/hesai_lidar/share/hesai_lidar/launch/hesai_lidar_launch.py
 
-for PandarQT
+**for PandarQT
+
 |Parameter | Value|
 |---------|---------------|
 |lidar_type |"PandarQT"|
 |frame_id |"PandarQT"|　
 
 for Pandar64
+
 |Parameter | Value|
 |---------|---------------|
 |lidar_type |"Pandar64"|
 |frame_id |"Pandar64"|　
 
 for Pandar20A
+
 |Parameter | Value|
 |---------|---------------|
 |lidar_type |"Pandar20A"|
 |frame_id |"Pandar20A"|　
 
 for Pandar20B
+
 |Parameter | Value|
 |---------|---------------|
 |lidar_type |"Pandar20B"|
 |frame_id |"Pandar20B"|　
 
 for Pandar40P
+
 |Parameter | Value|
 |---------|---------------|
 |lidar_type |"Pandar40P"|
 |frame_id |"Pandar40P"|　
 
 for Pandar40M
+
 |Parameter | Value|
 |---------|---------------|
 |lidar_type |"Pandar40M"|
 |frame_id |"Pandar40M"|　
 
 for PandarXT-32
+
 |Parameter | Value|
 |---------|---------------|
 |lidar_type |"PandarXT-32"|
 |frame_id |"PandarXT-32"|　
 
 for PandarXT-16
+
 |Parameter | Value|
 |---------|---------------|
 |lidar_type |"PandarXT-16"|
 |frame_id |"PandarXT-16"|　
 
 for PandarXTM
+
 |Parameter | Value|
 |---------|---------------|
 |lidar_type |"PandarXTM"|
