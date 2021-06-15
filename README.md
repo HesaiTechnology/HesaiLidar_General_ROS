@@ -82,6 +82,7 @@ Make sure the parameter "namespace" in file hesai_lidar.launch is same with the 
 $ . install/local_setup.bash
 ```
 2. Configure parameter lidar_type and frame_id
+
 ```
 
 $ gedit install/hesai_lidar/share/hesai_lidar/launch/hesai_lidar_launch.py
