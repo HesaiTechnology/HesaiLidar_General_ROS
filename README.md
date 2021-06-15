@@ -38,7 +38,7 @@ $ colcon build --symlink-install
 
 ## Configuration 
 ```
- $ gedit install/share/hesai_lidar/launch/hesai_lidar_launch.py
+ $ gedit install/hesai_lidar/share/hesai_lidar/launch/hesai_lidar_launch.py
 ```
 **Reciving data from connected Lidar: config lidar ip&port, leave the pcap_file empty**
 
@@ -80,29 +80,69 @@ Make sure the parameter "namespace" in file hesai_lidar.launch is same with the 
 ```
 $ . install/local_setup.bash
 ```
+2. Configure parameter lidar_type and frame_id
 ```
+$ gedit install/hesai_lidar/share/hesai_lidar/launch/hesai_lidar_launch.py
+
 for PandarQT
-$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="PandarQT" frame_id:="PandarQT"
+|Parameter | Value|
+|---------|---------------|
+|lidar_type |"PandarQT"|
+|frame_id |"PandarQT"|　
+
 for Pandar64
-$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="Pandar64" frame_id:="Pandar64"
+|Parameter | Value|
+|---------|---------------|
+|lidar_type |"Pandar64"|
+|frame_id |"Pandar64"|　
+
 for Pandar20A
-$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="Pandar20A" frame_id:="Pandar20A"
+|Parameter | Value|
+|---------|---------------|
+|lidar_type |"Pandar20A"|
+|frame_id |"Pandar20A"|　
+
 for Pandar20B
-$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="Pandar20B" frame_id:="Pandar20B"
+|Parameter | Value|
+|---------|---------------|
+|lidar_type |"Pandar20B"|
+|frame_id |"Pandar20B"|　
+
 for Pandar40P
-$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="Pandar40P" frame_id:="Pandar40P"
+|Parameter | Value|
+|---------|---------------|
+|lidar_type |"Pandar40P"|
+|frame_id |"Pandar40P"|　
+
 for Pandar40M
-$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="Pandar40M" frame_id:="Pandar40M"
+|Parameter | Value|
+|---------|---------------|
+|lidar_type |"Pandar40M"|
+|frame_id |"Pandar40M"|　
+
 for PandarXT-32
-$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="PandarXT-32" frame_id:="PandarXT-32"
+|Parameter | Value|
+|---------|---------------|
+|lidar_type |"PandarXT-32"|
+|frame_id |"PandarXT-32"|　
+
 for PandarXT-16
-$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="PandarXT-16" frame_id:="PandarXT-16"
+|Parameter | Value|
+|---------|---------------|
+|lidar_type |"PandarXT-16"|
+|frame_id |"PandarXT-16"|　
+
 for PandarXTM
-$ ros2 launch hesai_lidar hesai_lidar_launch.py  lidar_type:="PandarXTM" frame_id:="PandarXTM"
+|Parameter | Value|
+|---------|---------------|
+|lidar_type |"PandarXTM"|
+|frame_id |"PandarXTM"|　
+
+$ ros2 launch hesai_lidar hesai_lidar_launch.py 
 ```
-2. The driver will publish PointCloud messages to the topic `/pandar`  
-3. Open Rviz2 and add display by topic  
-4. Change fixed frame to frame_id to view published point clouds  
+3. The driver will publish PointCloud messages to the topic `/hesai/pandar`  
+4. Open Rviz2 and add display by topic  
+5. Change fixed frame to frame_id to view published point clouds  
 
 
 ## Details of launch file parameters and utilities
