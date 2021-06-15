@@ -82,9 +82,10 @@ $ . install/local_setup.bash
 ```
 2. Configure parameter lidar_type and frame_id
 ```
+
 $ gedit install/hesai_lidar/share/hesai_lidar/launch/hesai_lidar_launch.py
 
-**for PandarQT
+for PandarQT
 
 |Parameter | Value|
 |---------|---------------|
