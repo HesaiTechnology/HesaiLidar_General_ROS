@@ -77,6 +77,7 @@ Make sure the parameter "namespace" in file hesai_lidar.launch is same with the 
 ## Run 
 
 1. Make sure current path in the `rosworkspace` directory
+
 ```
 $ . install/local_setup.bash
 ```
