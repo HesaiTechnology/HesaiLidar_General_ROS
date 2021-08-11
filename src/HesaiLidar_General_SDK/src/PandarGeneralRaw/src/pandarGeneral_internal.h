@@ -487,6 +487,7 @@ class PandarGeneral_Internal {
   std::string m_sSensorFrame;
   std::string m_sFixedFrame;
   std::string m_sTargetFrame;
+  uint16_t m_iAzimuthRange;
 
 };
 
