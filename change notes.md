@@ -71,3 +71,13 @@ PandarGeneralSDK_1.1.8
 ##modify
 1. Support XTM
 
+
+Sunday, August 15th, 2021 17:30
+##version
+PandarGeneralSDK_1.1.11
+
+##modify
+1. Support ubuntu 20.04
+2. Support set fov
+3. Fix bug in calculate sin and cos
+4. Change XT firetime parameter
