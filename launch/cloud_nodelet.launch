@@ -17,7 +17,7 @@
 	<arg name="multicast_ip"  default=""/>
 	<arg name="coordinate_correction_flag"  default="false"/>
 	<arg name="manager" default="pandar_nodelet_manager" />
-	<arg name="fixed_frame"  default="111"/>
+	<arg name="fixed_frame"  default=""/>
 	<arg name="target_frame"  default=""/>
 	 <!-- start nodelet manager -->
 	<!-- <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" /> -->

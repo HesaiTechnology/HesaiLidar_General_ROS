@@ -69,6 +69,7 @@ typedef struct HS_LIDAR_XT_Packet_s{
     unsigned int timestamp; // ms
     unsigned int echo;
     unsigned char addtime[6];
+    double timestamp_point;
 } HS_LIDAR_XT_Packet;
 
 

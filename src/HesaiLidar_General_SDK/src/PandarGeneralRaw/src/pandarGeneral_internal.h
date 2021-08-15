@@ -142,15 +142,15 @@ HS_LIDAR_L64_7_BLOCK_PACKET_BODY_SIZE + HS_LIDAR_L64_PACKET_TAIL_WITHOUT_UDPSEQ_
 #define MAX_POINT_CLOUD_NUM (1000000)
 #define MAX_POINT_CLOUD_NUM_PER_CHANNEL (10000)
 #define MAX_AZIMUTH_DEGREE_NUM (36000)
-#define HS_LIDAR_XT_COORDINATE_CORRECTION_H (0.0000315)
-#define HS_LIDAR_XT_COORDINATE_CORRECTION_B (0.000013)
-#define HS_LIDAR_XTM_COORDINATE_CORRECTION_H (0.0000305)
-#define HS_LIDAR_XTM_COORDINATE_CORRECTION_B (0.000013)
-#define HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG (0.0000298)
-#define HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT (0.0000072)
-#define HS_LIDAR_QT_COORDINATE_CORRECTION_F (0.0000295)
-#define HS_LIDAR_QT_COORDINATE_CORRECTION_I0 (0.0000006)
-#define HS_LIDAR_QT_COORDINATE_CORRECTION_S0 (0.00000017)
+#define HS_LIDAR_XT_COORDINATE_CORRECTION_H (0.0315)
+#define HS_LIDAR_XT_COORDINATE_CORRECTION_B (0.013)
+#define HS_LIDAR_XTM_COORDINATE_CORRECTION_H (0.0305)
+#define HS_LIDAR_XTM_COORDINATE_CORRECTION_B (0.013)
+#define HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG (0.0298)
+#define HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT (0.0072)
+#define HS_LIDAR_QT_COORDINATE_CORRECTION_F (0.0295)
+#define HS_LIDAR_QT_COORDINATE_CORRECTION_I0 (0.0006)
+#define HS_LIDAR_QT_COORDINATE_CORRECTION_S0 (0.00017)
 #define HS_LIDAR_QT_COORDINATE_CORRECTION_D0 (20)
 #define COORDINATE_CORRECTION_CHECK (false)
 
@@ -172,6 +172,7 @@ struct Pandar40PPacket_s {
   struct tm t;
   uint32_t usec;
   int echo;
+  double timestamp_point;
 };
 typedef struct Pandar40PPacket_s Pandar40PPacket;
 
@@ -211,6 +212,7 @@ typedef struct HS_LIDAR_L64_Packet_s{
     unsigned int timestamp; // ms
     unsigned int echo;
     unsigned char addtime[6];
+    double timestamp_point;
 } HS_LIDAR_L64_Packet;
 /***************Pandar64****************************/
 
@@ -250,6 +252,7 @@ typedef struct HS_LIDAR_L20_Packet_s{
     unsigned int timestamp; // ms
     unsigned int echo;
     unsigned char addtime[6];
+    double timestamp_point;
 } HS_LIDAR_L20_Packet;
 /************Pandar20A/B*******************************/
 
@@ -424,6 +427,7 @@ class PandarGeneral_Internal {
   float cos_lookup_table_[ROTATION_MAX_UNITS];
 
   uint16_t last_azimuth_;
+  double last_timestamp_;
 
   float elev_angle_map_[LASER_COUNT];
   float horizatal_azimuth_offset_map_[LASER_COUNT];
