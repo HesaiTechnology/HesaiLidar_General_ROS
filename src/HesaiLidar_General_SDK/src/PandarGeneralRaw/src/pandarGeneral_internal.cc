@@ -774,8 +774,10 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
     }
     PandarPacket packet = *(m_PacketsBuffer.getIterCalc());
     m_PacketsBuffer.moveIterCalc();
-    rawpacket.stamp = packet.stamp;
-    // rawpacket.stamp.nsec = (packet.stamp - floor(packet.stamp))*1000000000;
+    // rawpacket.stamp = packet.stamp;
+    // rawpacket.stamp.nanosec = (packet.stamp - floor(packet.stamp))*1000000000;
+    rawpacket.stamp.sec = floor(packet.stamp);
+    rawpacket.stamp.nanosec = (packet.stamp - floor(packet.stamp))*1000000000;
     rawpacket.size = packet.size;
     rawpacket.data.resize(packet.size);
     memcpy(&rawpacket.data[0], &packet.data[0], packet.size);
@@ -1421,7 +1423,7 @@ void PandarGeneral_Internal::CalcPointXYZIT(Pandar40PPacket *pkt, int blockid,
     int azimuth = static_cast<int>(General_horizatal_azimuth_offset_map_[i] * 100 + block->azimuth);
     if(azimuth < 0)
       azimuth += 36000;
-    if(azimuth > 36000)
+    if(azimuth >= 36000)
       azimuth -= 36000;
     float xyDistance = unit.distance * m_cos_elevation_map_[i];
     point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
@@ -1499,7 +1501,7 @@ void PandarGeneral_Internal::CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blo
     int azimuth = static_cast<int>(General_horizatal_azimuth_offset_map_[i] * 100 + block->azimuth);
     if(azimuth < 0)
       azimuth += 36000;
-    if(azimuth > 36000)
+    if(azimuth >= 36000)
       azimuth -= 36000;
     float xyDistance = unit.distance * m_cos_elevation_map_[i];
     point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
@@ -1578,7 +1580,7 @@ void PandarGeneral_Internal::CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blo
     int azimuth = static_cast<int>(General_horizatal_azimuth_offset_map_[i] * 100 + block->azimuth);
     if(azimuth < 0)
       azimuth += 36000;
-    if(azimuth > 36000)
+    if(azimuth >= 36000)
       azimuth -= 36000;
     float xyDistance = unit.distance * m_cos_elevation_map_[i];
     point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
@@ -1667,7 +1669,7 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
     int azimuth = static_cast<int>(General_horizatal_azimuth_offset_map_[i] * 100 + block->azimuth);
     if(azimuth < 0)
       azimuth += 36000;
-    if(azimuth > 36000)
+    if(azimuth >= 36000)
       azimuth -= 36000;
     if(m_bCoordinateCorrectionFlag){
       if (m_sin_elevation_map_[i] != 0){
@@ -1802,7 +1804,7 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
     int azimuth = static_cast<int>(General_horizatal_azimuth_offset_map_[i] * 100 + block->azimuth);
     if(azimuth < 0)
       azimuth += 36000;
-    if(azimuth > 36000)
+    if(azimuth >= 36000)
       azimuth -= 36000;
 
     if(m_bCoordinateCorrectionFlag){
@@ -1950,7 +1952,7 @@ void PandarGeneral_Internal::PushScanPacket(hesai_lidar::msg::PandarScan::Shared
     }
     else {                                                                  //pcap
       PandarPacket pkt;
-      pkt.stamp = scan->packets[i].stamp;
+      pkt.stamp = scan->packets[i].stamp.sec + scan->packets[i].stamp.nanosec / 1000000000.0;
       pkt.size = scan->packets[i].size;
       memcpy(&pkt.data[0], &(scan->packets[i].data[0]), scan->packets[i].size);
       PushLiDARData(pkt);
@@ -1973,7 +1975,7 @@ void PandarGeneral_Internal::SetEnvironmentVariableTZ(){
   t1 = mktime(tm_local) ;
   tm_utc = gmtime(&t2);
   t2 = mktime(tm_utc);
-  timezone = t2 >= t1 ? (t2 - t1) / 3600 : (t1 - t2) / 3600;
+  timezone = 0;
   std::string data = "TZ=UTC" + std::to_string(timezone);
   int len = data.length();
   TZ = (char *)malloc((len + 1) * sizeof(char));
