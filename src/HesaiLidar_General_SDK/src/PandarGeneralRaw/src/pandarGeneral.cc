@@ -82,7 +82,7 @@ void PandarGeneral::ResetStartAngle(uint16_t start_angle) {
 /**
  * @brief Run SDK.
  */
-void PandarGeneral::Start() { return internal_->Start(); }
+void PandarGeneral::Start() { internal_->Start(); }
 
 /**
  * @brief Stop SDK.
