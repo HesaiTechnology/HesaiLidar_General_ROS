@@ -678,7 +678,7 @@ void PandarGeneral_Internal::ResetStartAngle(uint16_t start_angle) {
   start_angle_ = start_angle;
 }
 
-int PandarGeneral_Internal::Start() {
+void PandarGeneral_Internal::Start() {
   // LOG_FUNC();
   Stop();
   enable_lidar_recv_thr_ = true;

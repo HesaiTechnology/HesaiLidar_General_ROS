@@ -366,7 +366,7 @@ class PandarGeneral_Internal {
    */
   void ResetStartAngle(uint16_t start_angle);
 
-  int Start();
+  void Start();
   void Stop();
   void PushScanPacket(hesai_lidar::PandarScanPtr scan);
   bool GetCorrectionFileFlag();
