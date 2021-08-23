@@ -78,7 +78,7 @@ class PandarGeneralSDK {
   void ResetLidarStartAngle(uint16_t start_angle);
   std::string GetLidarCalibration();
   void GetCalibrationFromDevice();
-  int Start();
+  void Start();
   void Stop();
   void PushScanPacket(hesai_lidar::PandarScanPtr scan);
 

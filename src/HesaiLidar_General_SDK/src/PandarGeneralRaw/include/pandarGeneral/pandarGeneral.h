@@ -86,7 +86,7 @@ class PandarGeneral {
   /**
    * @brief Run SDK.
    */
-  int Start();
+  void Start();
 
   /**
    * @brief Stop SDK.

@@ -81,3 +81,10 @@ PandarGeneralSDK_1.1.11
 2. Support set fov
 3. Fix bug in calculate sin and cos
 4. Change XT firetime parameter
+
+Sunday, August 22th, 2021 17:30
+##version
+PandarGeneralSDK_1.1.12
+
+##modify
+1. Chang return type to void of function without return
