@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     roslib
     std_msgs
+    livox_ros_driver
     sensor_msgs
     message_runtime
     image_transport
@@ -32,7 +33,7 @@ generate_messages(
   std_msgs
 )
 catkin_package(
-    CATKIN_DEPENDS message_runtime
+    CATKIN_DEPENDS message_runtime livox_ros_driver
 )
 
 ###PandarGeneralRaw
@@ -42,6 +43,9 @@ add_library(PandarGeneral
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pcap_reader.cpp
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/src/pandarGeneral.cc
 )
+
+add_dependencies(PandarGeneral hesai_lidar_generate_messages_cpp)
+
 target_include_directories(PandarGeneral PRIVATE
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/
@@ -89,7 +93,7 @@ target_include_directories(hesai_lidar_node PRIVATE
     src/HesaiLidar_General_SDK/include
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
     ${PCL_INCLUDE_DIRS}
-    ${catkin_INCLUDE_DIRS}
+    ${catkin_INCLUDE_DIRS}cd 
     ${Boost_INCLUDE_DIRS}
 )
 
@@ -115,3 +119,4 @@ install(DIRECTORY launch/
 install(DIRECTORY config/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
 )
+

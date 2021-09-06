@@ -5,6 +5,9 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include "pandarGeneral_sdk/pandarGeneral_sdk.h"
+#include <livox_ros_driver/CustomMsg.h>
+#include <iostream>
+
 
 using namespace std;
 
@@ -13,7 +16,7 @@ class HesaiLidarClient
 public:
   HesaiLidarClient(ros::NodeHandle node, ros::NodeHandle nh)
   {
-    lidarPublisher = node.advertise<sensor_msgs::PointCloud2>("pandar", 10);
+    lidarPublisher = node.advertise<livox_ros_driver::CustomMsg>("lidar", 10);
     packetPublisher = node.advertise<hesai_lidar::PandarScan>("pandar_packets",10);
 
     string serverIp;
@@ -91,21 +94,115 @@ public:
 
   void lidarCallback(boost::shared_ptr<PPointCloud> cld, double timestamp, hesai_lidar::PandarScanPtr scan) // the timestamp from first point cloud of cld
   {
-    if(m_sPublishType == "both" || m_sPublishType == "points"){
+   
+    if (m_sPublishType == "both" || m_sPublishType == "points")
+    {
       pcl_conversions::toPCL(ros::Time(timestamp), cld->header.stamp);
-      sensor_msgs::PointCloud2 output;
-      pcl::toROSMsg(*cld, output);
-      lidarPublisher.publish(output);
-      printf("timestamp: %f, point size: %ld.\n",timestamp, cld->points.size());
+      // sensor_msgs::PointCloud2 output;
+      // pcl::toROSMsg(*cld, output);
+      livox_ros_driver::CustomMsg output;
+
+      int input_point_size = cld->width;
+      std::cout << "width = " << cld->width <<std::endl;
+      output.points.reserve(input_point_size+1); // [input_point_size]要素(以上)の領域を事前に確保しておく
+      // output.lidar_id =
+      // output.rsvd =
+      output.err.time_sync_status = 2;
+      output.err.pps_status = 1;
+      output.err.system_status = 0;
+      static int publish_count;
+      publish_count++;
+      output.header.seq = publish_count;
+
+      static double timebase_double;
+      static uint64_t timebase_uint64;
+      static double pre_timestamp;
+      static double pre_timebase_double;
+      static uint64_t pre_timebase_uint64;
+      if(publish_count == 0){
+        pre_timestamp = timestamp;
+        pre_timebase_double = timebase_double;
+        pre_timebase_uint64 = timebase_uint64;
+      }
+
+      timebase_double = timestamp * 1e9;
+      timebase_uint64 = (uint64_t) timebase_double;
+      output.timebase = timebase_uint64;
+
+      double d_timestamp = (double)timestamp - (double)pre_timestamp;
+      double d_timebase_double = timebase_double - pre_timebase_double;
+      uint64_t d_timebase_uint64 = timebase_uint64 - pre_timebase_uint64;
+      if(d_timestamp > 1.00){
+        ROS_WARN("The time distance between the two points is too wide.");
+        std::cout << "pre_timestamp = " << pre_timestamp << ", pre_timebase_double = " << pre_timebase_double << ", pre_timebase_uint64 = " << pre_timebase_uint64 <<"\n";
+        std::cout << "timestamp = " << timestamp << ", timebase_double = " << timebase_double << ", timebase_uint64 = " << timebase_uint64 << ", d_timestamp = " << d_timestamp << ", d_timebase_double = " << d_timebase_double << ", d_timebase_uint64 = " << d_timebase_uint64 <<"\n";
+      } 
+      
+      pre_timestamp = timestamp;
+      pre_timebase_double = timebase_double;
+      pre_timebase_uint64 = timebase_uint64;
+      
+
+      for (int i = 0; i < input_point_size; i++)
+      {
+        livox_ros_driver::CustomPoint sub_output;
+      
+          // printf("msg.timebase : %d\n",output.timebase);
+          double timestamp_double_ns_point_i = cld->points[i].timestamp*1e9;
+          // printf("timestamp_double_ns_point_%d: %f\n", i, timestamp_double_ns_point_i);
+          uint64_t timestamp_uint64_ns_point_i = (uint64_t) timestamp_double_ns_point_i;
+          // printf("timestamp_uint64_ns_point_%d :", i);
+          // std::cout << timestamp_uint64_ns_point_i << std::endl;
+          uint32_t timestamp_uint32_ns_point_i = static_cast<uint32_t>(timestamp_uint64_ns_point_i);
+          // printf("timestamp_uint32_ns_point_%d :", i);
+          // std::cout << timestamp_uint32_ns_point_i << std::endl;
+
+          uint32_t timebase_uint32 = (uint32_t)timebase_uint64;
+          // printf("\ntimebase_uint32 : %d\n",timebase_uint32);
+          uint32_t time_offset_ns_point_i = timestamp_uint32_ns_point_i - timebase_uint32;
+          // printf("time_offset_ns_point_%d : ", i);
+          // std::cout << time_offset_ns_point_i << std::endl;
+          sub_output.offset_time = (uint32_t)(time_offset_ns_point_i);
+          // printf("\nmsg.offset_time :");
+          // std::cout << sub_output.offset_time << std::endl;
+          // printf("\n---------------------------\n");
+        //  }
+
+        sub_output.x = cld->points[i].x;
+        sub_output.y = cld->points[i].y;
+        sub_output.z = cld->points[i].z;
+        sub_output.reflectivity = cld->points[i].intensity;
+        sub_output.line = cld->points[i].ring; 
+        sub_output.tag = 16;
+        // if(i<=1){
+        // std::cout << "output.timebase"<< output.timebase;
+        // std::cout << " , time_offset["<< i << "] = " << sub_output.offset_time <<"\n";
+        // }
+        output.points.push_back(sub_output);
+      }
+      std::cout << "width = " << cld->width <<std::endl;
+      std::cout << "reserved = " << output.points.size() <<std::endl;
+      std::cout << "capacity = " << output.points.capacity() <<std::endl;
+          
+          // sub_output.offset_time = cld->points[input_point_num-1].timestamp;
+      output.point_num = output.points.size(); //★
+      std::cout << " output.points.size() = " << output.points.size() <<std::endl;
+
+      std::cout << "---------------------------" <<std::endl;
+
+          // output.point_num = cld -> points.size();
+          
+          lidarPublisher.publish(output);
+      // printf("timebase:%f ,timestamp: %f, point size: %d, width: %d.\n",output.timebase,timestamp,input_point_size,cld->width);
     }
     if(m_sPublishType == "both" || m_sPublishType == "raw"){
       packetPublisher.publish(scan);
-      printf("raw size: %d.\n", scan->packets.size());
+      // printf("raw size: %d.\n", scan->packets.size());
     }
   }
 
   void gpsCallback(int timestamp) {
-    printf("gps: %d\n", timestamp);
+    printf("gps    : %d\n", timestamp);
   }
 
   void scanCallback(const hesai_lidar::PandarScanPtr scan)

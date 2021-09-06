@@ -19,4 +19,5 @@
   <depend>libpcl-all-dev</depend>
   <depend>image_transport</depend>
   <depend>pcl_conversions</depend>
+  <depend>livox_ros_driver</depend>
 </package>
