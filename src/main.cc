@@ -5,9 +5,13 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include "pandarGeneral_sdk/pandarGeneral_sdk.h"
+
 #include <livox_ros_driver/CustomMsg.h>
 #include <iostream>
 
+
+#include <fstream>
+// #define PRINT_FLAG 
 
 using namespace std;
 
@@ -29,6 +33,10 @@ public:
     int pclDataType;
     string pcapFile;
     string dataType;
+    string multicastIp;
+    bool coordinateCorrectionFlag;
+    string targetFrame;
+    string fixedFrame;
 
     nh.getParam("pcap_file", pcapFile);
     nh.getParam("server_ip", serverIp);
@@ -42,46 +50,53 @@ public:
     nh.getParam("publish_type", m_sPublishType);
     nh.getParam("timestamp_type", m_sTimestampType);
     nh.getParam("data_type", dataType);
-
+    nh.getParam("multicast_ip", multicastIp);
+    nh.getParam("coordinate_correction_flag", coordinateCorrectionFlag);
+    nh.getParam("target_frame", targetFrame);
+    nh.getParam("fixed_frame", fixedFrame);
+  
     if(!pcapFile.empty()){
       hsdk = new PandarGeneralSDK(pcapFile, boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2, _3), \
-      static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType);
+      static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType, lidarCorrectionFile, \
+      coordinateCorrectionFlag, targetFrame, fixedFrame);
       if (hsdk != NULL) {
-        ifstream fin(lidarCorrectionFile);
-        int length = 0;
-        std::string strlidarCalibration;
-        fin.seekg(0, std::ios::end);
-        length = fin.tellg();
-        fin.seekg(0, std::ios::beg);
-        char *buffer = new char[length];
-        fin.read(buffer, length);
-        fin.close();
-        strlidarCalibration = buffer;
-        hsdk->LoadLidarCorrectionFile(strlidarCalibration);
+        std::ifstream fin(lidarCorrectionFile);
+        if (fin.is_open()) {
+          std::cout << "Open correction file " << lidarCorrectionFile << " succeed" << std::endl;
+          int length = 0;
+          std::string strlidarCalibration;
+          fin.seekg(0, std::ios::end);
+          length = fin.tellg();
+          fin.seekg(0, std::ios::beg);
+          char *buffer = new char[length];
+          fin.read(buffer, length);
+          fin.close();
+          strlidarCalibration = buffer;
+          int ret = hsdk->LoadLidarCorrectionFile(strlidarCalibration);
+          if (ret != 0) {
+            std::cout << "Load correction file from " << lidarCorrectionFile <<" failed" << std::endl;
+          } else {
+            std::cout << "Load correction file from " << lidarCorrectionFile << " succeed" << std::endl;
+          }
+        }
+        else{
+          std::cout << "Open correction file " << lidarCorrectionFile << " failed" << std::endl;
+        }
       }
     }
     else if ("rosbag" == dataType){
       hsdk = new PandarGeneralSDK("", boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2, _3), \
-      static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType);
+      static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType, \
+      lidarCorrectionFile, coordinateCorrectionFlag, targetFrame, fixedFrame);
       if (hsdk != NULL) {
-        ifstream fin(lidarCorrectionFile);
-        int length = 0;
-        std::string strlidarCalibration;
-        fin.seekg(0, std::ios::end);
-        length = fin.tellg();
-        fin.seekg(0, std::ios::beg);
-        char *buffer = new char[length];
-        fin.read(buffer, length);
-        fin.close();
-        strlidarCalibration = buffer;
-        hsdk->LoadLidarCorrectionFile(strlidarCalibration);
         packetSubscriber = node.subscribe("pandar_packets",10,&HesaiLidarClient::scanCallback, (HesaiLidarClient*)this, ros::TransportHints().tcpNoDelay(true));
       }
     }
     else {
       hsdk = new PandarGeneralSDK(serverIp, lidarRecvPort, gpsPort, \
         boost::bind(&HesaiLidarClient::lidarCallback, this, _1, _2, _3), \
-        boost::bind(&HesaiLidarClient::gpsCallback, this, _1), static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId, m_sTimestampType);
+        boost::bind(&HesaiLidarClient::gpsCallback, this, _1), static_cast<int>(startAngle * 100 + 0.5), 0, pclDataType, lidarType, frameId,\
+         m_sTimestampType, lidarCorrectionFile, multicastIp, coordinateCorrectionFlag, targetFrame, fixedFrame);
     }
     
     if (hsdk != NULL) {
@@ -98,6 +113,7 @@ public:
     if (m_sPublishType == "both" || m_sPublishType == "points")
     {
       pcl_conversions::toPCL(ros::Time(timestamp), cld->header.stamp);
+// <<<<<<< HEAD
       // sensor_msgs::PointCloud2 output;
       // pcl::toROSMsg(*cld, output);
       livox_ros_driver::CustomMsg output;
@@ -198,11 +214,28 @@ public:
     if(m_sPublishType == "both" || m_sPublishType == "raw"){
       packetPublisher.publish(scan);
       // printf("raw size: %d.\n", scan->packets.size());
+// =======
+//       sensor_msgs::PointCloud2 output;
+//       pcl::toROSMsg(*cld, output);
+//       lidarPublisher.publish(output);
+// #ifdef PRINT_FLAG
+//         printf("timestamp: %f, point size: %ld.\n",timestamp, cld->points.size());
+// #endif        
+//     }
+//     if(m_sPublishType == "both" || m_sPublishType == "raw"){
+//       packetPublisher.publish(scan);
+// #ifdef PRINT_FLAG
+//         printf("raw size: %d.\n", scan->packets.size());
+// #endif
+// >>>>>>> Hesai_upstream/master
     }
   }
 
   void gpsCallback(int timestamp) {
-    printf("gps    : %d\n", timestamp);
+    #ifdef PRINT_FLAG
+       printf("gps: %d\n", timestamp);
+    #endif      
+
   }
 
   void scanCallback(const hesai_lidar::PandarScanPtr scan)

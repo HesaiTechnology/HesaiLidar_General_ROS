@@ -30,6 +30,7 @@
 #include "pandarGeneral/pandarGeneral.h"
 #include "pandarGeneral/point_types.h"
 #include "hesai_lidar/PandarScan.h"
+#include <boost/thread.hpp>
 
 //class PandarGeneralSDK_Internal;
 
@@ -50,7 +51,9 @@ class PandarGeneralSDK {
       boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)>
           pcl_callback,
       boost::function<void(double)> gps_callback, uint16_t start_angle,
-      int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType); // the default timestamp type is LiDAR time
+      int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType,  // the default timestamp type is LiDAR time
+      std::string lidar_correction_file, std::string multicast_ip, bool coordinate_correction_flag, 
+      std::string target_frame, std::string fixed_frame);
   /**
    * @brief Constructor
    * @param pcap_path         The path of pcap file
@@ -62,7 +65,9 @@ class PandarGeneralSDK {
    */
   PandarGeneralSDK(std::string pcap_path, \
       boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> pcl_callback, \
-      uint16_t start_angle, int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType); // the default timestamp type is LiDAR time
+      uint16_t start_angle, int tz, int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType, // the default timestamp type is LiDAR time
+      std::string lidar_correction_file, bool coordinate_correction_flag,
+      std::string target_frame, std::string fixed_frame); 
   ~PandarGeneralSDK();
 
   /**
@@ -73,7 +78,7 @@ class PandarGeneralSDK {
   void ResetLidarStartAngle(uint16_t start_angle);
   std::string GetLidarCalibration();
   void GetCalibrationFromDevice();
-  int Start();
+  void Start();
   void Stop();
   void PushScanPacket(hesai_lidar::PandarScanPtr scan);
 
@@ -84,6 +89,7 @@ class PandarGeneralSDK {
   bool enable_get_calibration_thr_;
   bool got_lidar_calibration_;
   std::string correction_content_;
+  std::string correction_file_path_;
 };
 
 

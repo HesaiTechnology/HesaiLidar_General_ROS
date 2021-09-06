@@ -19,7 +19,10 @@
 #include "src/input.h"
 #include "src/pandarGeneral_internal.h"
 #include "log.h"
-
+#include <sched.h>
+#include <tf2_ros/transform_listener.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <algorithm>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -87,7 +90,9 @@ PandarGeneral_Internal::PandarGeneral_Internal(
     std::string device_ip, uint16_t lidar_port, uint16_t gps_port,
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> pcl_callback,
     boost::function<void(double)> gps_callback, uint16_t start_angle, int tz,
-    int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType) {
+    int pcl_type, std::string lidar_type, std::string frame_id, std::string timestampType,
+    std::string lidar_correction_file, std::string multicast_ip, bool coordinate_correction_flag,
+    std::string target_frame, std::string fixed_frame) {
       // LOG_FUNC();
   pthread_mutex_init(&lidar_lock_, NULL);
   sem_init(&lidar_sem_, 0, 0);
@@ -98,28 +103,49 @@ PandarGeneral_Internal::PandarGeneral_Internal(
   enable_lidar_recv_thr_ = false;
   enable_lidar_process_thr_ = false;
 
-  input_.reset(new Input(lidar_port, gps_port));
+  input_.reset(new Input(lidar_port, gps_port, multicast_ip));
 
   start_angle_ = start_angle;
   pcl_callback_ = pcl_callback;
   gps_callback_ = gps_callback;
   last_azimuth_ = 0;
+  last_timestamp_ = 0;
   m_sLidarType = lidar_type;
-  frame_id_ = frame_id;
+  m_sSensorFrame = frame_id;
+  m_sFixedFrame = fixed_frame;
+  m_sTargetFrame = target_frame;
+  m_iAzimuthRange = MAX_AZIMUTH_DEGREE_NUM;
+  if (!m_sTargetFrame.empty())
+  {
+    m_sFrameId = m_sTargetFrame;
+  }
+  else if (!m_sFixedFrame.empty())
+  {
+    m_sFrameId = m_sFixedFrame;
+  }
+  else
+  {
+    m_sFrameId = m_sSensorFrame;
+  }
+
   tz_second_ = tz * 3600;
   pcl_type_ = pcl_type;
   connect_lidar_ = true;
   pcap_reader_ = NULL;
   m_sTimestampType = timestampType;
   m_dPktTimestamp = 0.0f;
-
+  got_lidar_correction_flag = false;
+  correction_file_path_ = lidar_correction_file;
+  m_bCoordinateCorrectionFlag = coordinate_correction_flag;
   Init();
 }
 
 PandarGeneral_Internal::PandarGeneral_Internal(std::string pcap_path, \
     boost::function<void(boost::shared_ptr<PPointCloud>, double, hesai_lidar::PandarScanPtr)> \
     pcl_callback, uint16_t start_angle, int tz, int pcl_type, \
-    std::string lidar_type, std::string frame_id, std::string timestampType) {
+    std::string lidar_type, std::string frame_id, std::string timestampType,
+    std::string lidar_correction_file, bool coordinate_correction_flag,
+    std::string target_frame, std::string fixed_frame) {
   pthread_mutex_init(&lidar_lock_, NULL);
   sem_init(&lidar_sem_, 0, 0);
 
@@ -135,13 +161,32 @@ PandarGeneral_Internal::PandarGeneral_Internal(std::string pcap_path, \
   pcl_callback_ = pcl_callback;
   gps_callback_ = NULL;
   last_azimuth_ = 0;
+  last_timestamp_ = 0;
   m_sLidarType = lidar_type;
-  frame_id_ = frame_id;
+   m_sSensorFrame = frame_id;
+  m_sFixedFrame = fixed_frame;
+  m_sTargetFrame = target_frame;
+  m_iAzimuthRange = MAX_AZIMUTH_DEGREE_NUM;
+  if (!m_sTargetFrame.empty())
+  {
+    m_sFrameId = m_sTargetFrame;
+  }
+  else if (!m_sFixedFrame.empty())
+  {
+    m_sFrameId = m_sFixedFrame;
+  }
+  else
+  {
+    m_sFrameId = m_sSensorFrame;
+  }
   tz_second_ = tz * 3600;
   pcl_type_ = pcl_type;
   connect_lidar_ = false;
   m_sTimestampType = timestampType;
   m_dPktTimestamp = 0.0f;
+  got_lidar_correction_flag = false;
+  correction_file_path_ = lidar_correction_file;
+  m_bCoordinateCorrectionFlag = coordinate_correction_flag;
   Init();
 }
 
@@ -167,6 +212,31 @@ void PandarGeneral_Internal::Init() {
   for(int i = 0; i < MAX_AZIMUTH_DEGREE_NUM; ++i) {
     m_sin_azimuth_map_[i] = sinf(i * M_PI / 18000);
     m_cos_azimuth_map_[i] = cosf(i * M_PI / 18000);
+  }
+  m_sin_azimuth_map_h.resize(MAX_AZIMUTH_DEGREE_NUM);
+  m_cos_azimuth_map_h.resize(MAX_AZIMUTH_DEGREE_NUM);
+  for(int i = 0; i < MAX_AZIMUTH_DEGREE_NUM; ++i) {
+    if(m_sLidarType == "PandarXTM"){
+      m_sin_azimuth_map_h[i] = sinf(i * M_PI / 18000) * HS_LIDAR_XTM_COORDINATE_CORRECTION_H;
+      m_cos_azimuth_map_h[i] = cosf(i * M_PI / 18000) * HS_LIDAR_XTM_COORDINATE_CORRECTION_H;
+    }
+    else{
+      m_sin_azimuth_map_h[i] = sinf(i * M_PI / 18000) * HS_LIDAR_XT_COORDINATE_CORRECTION_H;
+      m_cos_azimuth_map_h[i] = cosf(i * M_PI / 18000) * HS_LIDAR_XT_COORDINATE_CORRECTION_H;
+    }
+  }
+  m_sin_azimuth_map_b.resize(MAX_AZIMUTH_DEGREE_NUM);
+  m_cos_azimuth_map_b.resize(MAX_AZIMUTH_DEGREE_NUM);
+  for(int i = 0; i < MAX_AZIMUTH_DEGREE_NUM; ++i) {
+    if(m_sLidarType == "PandarXTM"){
+      m_sin_azimuth_map_b[i] = sinf(i * M_PI / 18000) * HS_LIDAR_XTM_COORDINATE_CORRECTION_B;
+      m_cos_azimuth_map_b[i] = cosf(i * M_PI / 18000) * HS_LIDAR_XTM_COORDINATE_CORRECTION_B;
+    }
+    else{
+      m_sin_azimuth_map_b[i] = sinf(i * M_PI / 18000) * HS_LIDAR_XT_COORDINATE_CORRECTION_B;
+      m_cos_azimuth_map_b[i] = cosf(i * M_PI / 18000) * HS_LIDAR_XT_COORDINATE_CORRECTION_B;
+    }
+      
   }
   if (pcl_type_) {
     for (int i = 0; i < MAX_LASER_NUM; i++) {
@@ -522,6 +592,24 @@ void PandarGeneral_Internal::Init() {
     blockXTOffsetSingle_[i] = blockXTOffsetSingle[i];
     blockXTOffsetDual_[i] = blockXTOffsetDual[i];
   }
+
+  if (m_sLidarType == "PandarXTM") {
+    m_sin_elevation_map_.resize(HS_LIDAR_XT_UNIT_NUM);
+    m_cos_elevation_map_.resize(HS_LIDAR_XT_UNIT_NUM);
+    for (int i = 0; i < HS_LIDAR_XT_UNIT_NUM; i++) {
+      m_sin_elevation_map_[i] = sinf(degreeToRadian(pandarXTM_elev_angle_map[i]));
+      m_cos_elevation_map_[i] = cosf(degreeToRadian(pandarXTM_elev_angle_map[i]));
+      General_elev_angle_map_[i] = pandarXTM_elev_angle_map[i];
+      General_horizatal_azimuth_offset_map_[i] = pandarXTM_horizatal_azimuth_offset_map[i];
+      laserXTOffset_[i] = laserXTMOffset[i];
+    }
+    for (int i = 0; i < HS_LIDAR_XT_BLOCK_NUMBER; i++) {
+      blockXTOffsetSingle_[i] = blockXTMOffsetSingle[i];
+      blockXTOffsetDual_[i] = blockXTMOffsetDual[i];
+      blockXTOffsetTriple_[i] = blockXTMOffsetTriple[i];
+    }
+  }
+
   SetEnvironmentVariableTZ();
 }
 
@@ -590,7 +678,7 @@ void PandarGeneral_Internal::ResetStartAngle(uint16_t start_angle) {
   start_angle_ = start_angle;
 }
 
-int PandarGeneral_Internal::Start() {
+void PandarGeneral_Internal::Start() {
   // LOG_FUNC();
   Stop();
   enable_lidar_recv_thr_ = true;
@@ -632,6 +720,15 @@ void PandarGeneral_Internal::Stop() {
 void PandarGeneral_Internal::RecvTask() {
   // LOG_FUNC();
   int ret = 0;
+  sched_param param;
+  int ret_policy;
+  // SCHED_FIFO和SCHED_RR
+  param.sched_priority = 99;
+  int rc = pthread_setschedparam(pthread_self(), SCHED_RR, &param);
+  printf("publishRawDataThread:set result [%d]\n", rc);
+  pthread_getschedparam(pthread_self(), &ret_policy, &param);
+  printf("publishRawDataThread:get thead %lu, policy %d and priority %d\n",
+           pthread_self(), ret_policy, param.sched_priority);
   while (enable_lidar_recv_thr_) {
     PandarPacket pkt;
     int rc = input_->getPacket(&pkt);
@@ -671,22 +768,16 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
   boost::shared_ptr<PPointCloud> outMsg(new PPointCloud());
   hesai_lidar::PandarScanPtr scan(new hesai_lidar::PandarScan);
   hesai_lidar::PandarPacket rawpacket;
-
+  if(!computeTransformToTarget(ros::Time::now()))
+    return;
 
   while (enable_lidar_process_thr_) {
-    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-      std::cout << "get time error" << std::endl;
-    }
-
-    ts.tv_sec += 1;
-    if (sem_timedwait(&lidar_sem_, &ts) == -1) {
+    if (!m_PacketsBuffer.hasEnoughPackets()) {
+      usleep(1000);
       continue;
     }
-    pthread_mutex_lock(&lidar_lock_);
-    PandarPacket packet = lidar_packets_.front();
-    lidar_packets_.pop_front();
-    pthread_mutex_unlock(&lidar_lock_);
-    // memcpy(&rawpacket, &packet, 1512);
+    PandarPacket packet = *(m_PacketsBuffer.getIterCalc());
+    m_PacketsBuffer.moveIterCalc();
     rawpacket.stamp.sec = floor(packet.stamp);
     rawpacket.stamp.nsec = (packet.stamp - floor(packet.stamp))*1000000000;
     rawpacket.size = packet.size;
@@ -696,6 +787,9 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
     // printf("##m_dPktTimestamp: %lf\n", m_dPktTimestamp);
 
     if (packet.size == PACKET_SIZE || packet.size == PACKET_SIZE + SEQ_NUM_SIZE) {
+      manage_tf_buffer();
+      if(!computeTransformToFixed(rawpacket.stamp))
+        return; // target frame not available
       Pandar40PPacket pkt;
       ret = ParseRawData(&pkt, packet.data, packet.size);
 
@@ -705,33 +799,42 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
       scan->packets.push_back(rawpacket);
       for (int i = 0; i < BLOCKS_PER_PACKET; ++i) {
         int azimuthGap = 0; /* To do */
+        double timestampGap = 0; /* To do */
 
         if(last_azimuth_ > pkt.blocks[i].azimuth) {
           azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) + (36000 - static_cast<int>(last_azimuth_));
         } else {
           azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) - static_cast<int>(last_azimuth_);
         }
+        timestampGap = pkt.timestamp_point - last_timestamp_ + 0.001;
         
         if (last_azimuth_ != pkt.blocks[i].azimuth && 
-                      azimuthGap < 600 /* 6 degree*/) {
+                      (azimuthGap / timestampGap) < MAX_AZIMUTH_DEGREE_NUM * 100 ) {
           /* for all the blocks */
           if ((last_azimuth_ > pkt.blocks[i].azimuth &&
                start_angle_ <= pkt.blocks[i].azimuth) ||
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
+              scan->packets.push_back(SaveCorrectionFile(LASER_COUNT));
               EmitBackMessege(LASER_COUNT, outMsg, scan);
               scan->packets.clear();
+              if(!computeTransformToTarget(rawpacket.stamp))
+                return; // target frame not available
             }
           }
         }
         CalcPointXYZIT(&pkt, i, outMsg);
         last_azimuth_ = pkt.blocks[i].azimuth;
+        last_timestamp_ = pkt.timestamp_point;
       }
     } else if (packet.size == HS_LIDAR_L64_6PACKET_SIZE || \
         packet.size == HS_LIDAR_L64_7PACKET_SIZE || \
         packet.size == HS_LIDAR_L64_6PACKET_WITHOUT_UDPSEQ_SIZE || \
         packet.size == HS_LIDAR_L64_7PACKET_WITHOUT_UDPSEQ_SIZE) {
+      manage_tf_buffer();
+      if(!computeTransformToFixed(rawpacket.stamp))
+        return; // target frame not available
       HS_LIDAR_L64_Packet pkt;
       ret = ParseL64Data(&pkt, packet.data, packet.size);
 
@@ -741,22 +844,27 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
       scan->packets.push_back(rawpacket);
       for (int i = 0; i < pkt.header.chBlockNumber; ++i) {
         int azimuthGap = 0; /* To do */
+        double timestampGap = 0; /* To do */
         if(last_azimuth_ > pkt.blocks[i].azimuth) {
           azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) + (36000 - static_cast<int>(last_azimuth_));
         } else {
           azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) - static_cast<int>(last_azimuth_);
         }
+        timestampGap = pkt.timestamp_point - last_timestamp_ + 0.001;
         
         if (last_azimuth_ != pkt.blocks[i].azimuth && 
-                      azimuthGap < 600 /* 6 degree*/) {
+                      (azimuthGap / timestampGap) < MAX_AZIMUTH_DEGREE_NUM * 100 ) {
           /* for all the blocks */
           if ((last_azimuth_ > pkt.blocks[i].azimuth &&
                start_angle_ <= pkt.blocks[i].azimuth) ||
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
+              scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
+              if(!computeTransformToTarget(rawpacket.stamp))
+                return; // target frame not available
             }
           }
         } else {
@@ -765,8 +873,12 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
 
         CalcL64PointXYZIT(&pkt, i, pkt.header.chLaserNumber, outMsg);
         last_azimuth_ = pkt.blocks[i].azimuth;
+        last_timestamp_ = pkt.timestamp_point;
       }
     } else if (HS_LIDAR_L20_PACKET_SIZE == packet.size) {
+      manage_tf_buffer();
+      if(!computeTransformToFixed(rawpacket.stamp))
+        return; // target frame not available
       HS_LIDAR_L20_Packet pkt;
       ret = ParseL20Data(&pkt, packet.data, packet.size);
 
@@ -776,22 +888,26 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
       scan->packets.push_back(rawpacket);
       for (int i = 0; i < pkt.header.chBlockNumber; ++i) {
         int azimuthGap = 0; /* To do */
+        double timestampGap = 0; /* To do */
         if(last_azimuth_ > pkt.blocks[i].azimuth) {
           azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) + (36000 - static_cast<int>(last_azimuth_));
         } else {
           azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) - static_cast<int>(last_azimuth_);
         }
-
+        timestampGap = pkt.timestamp_point - last_timestamp_ + 0.001;
         if (last_azimuth_ != pkt.blocks[i].azimuth && \
-            azimuthGap < 600 /* 6 degree*/) {
+           (azimuthGap / timestampGap) < MAX_AZIMUTH_DEGREE_NUM * 100 ) {
           /* for all the blocks */
           if ((last_azimuth_ > pkt.blocks[i].azimuth &&
                start_angle_ <= pkt.blocks[i].azimuth) ||
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
+              scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
+              if(!computeTransformToTarget(rawpacket.stamp))
+                return; // target frame not available
             }
           }
         } else {
@@ -799,9 +915,13 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
         }
         CalcL20PointXYZIT(&pkt, i, pkt.header.chLaserNumber, outMsg);
         last_azimuth_ = pkt.blocks[i].azimuth;
+        last_timestamp_ = pkt.timestamp_point;
       }
     } else if(packet.size == HS_LIDAR_QT_PACKET_SIZE || \
         packet.size == HS_LIDAR_QT_PACKET_WITHOUT_UDPSEQ_SIZE) {
+      manage_tf_buffer();
+      if(!computeTransformToFixed(rawpacket.stamp))
+        return; // target frame not available
       HS_LIDAR_QT_Packet pkt;
       ret = ParseQTData(&pkt, packet.data, packet.size);
       if (ret != 0) {
@@ -810,22 +930,26 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
       scan->packets.push_back(rawpacket);
       for (int i = 0; i < pkt.header.chBlockNumber; ++i) {
         int azimuthGap = 0; /* To do */
+        double timestampGap = 0; /* To do */
         if(last_azimuth_ > pkt.blocks[i].azimuth) {
           azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) + (36000 - static_cast<int>(last_azimuth_));
         } else {
           azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) - static_cast<int>(last_azimuth_);
         }
-
+        timestampGap = pkt.timestamp_point - last_timestamp_ + 0.001;
         if (last_azimuth_ != pkt.blocks[i].azimuth && \
-            azimuthGap < 600 /* 6 degree*/) {
+            (azimuthGap / timestampGap) < MAX_AZIMUTH_DEGREE_NUM * 100 ) {
           /* for all the blocks */
           if ((last_azimuth_ > pkt.blocks[i].azimuth &&
                start_angle_ <= pkt.blocks[i].azimuth) ||
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
+              scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
+              if(!computeTransformToTarget(rawpacket.stamp))
+                return; // target frame not available
             }
           }
         } else {
@@ -833,10 +957,15 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
         }
         CalcQTPointXYZIT(&pkt, i, pkt.header.chLaserNumber, outMsg);
         last_azimuth_ = pkt.blocks[i].azimuth;
+        last_timestamp_ = pkt.timestamp_point;
       }
     } 
     else if((packet.size == HS_LIDAR_XT_PACKET_SIZE && (m_sLidarType == "XT" || m_sLidarType == "PandarXT-32")) || \
-        (packet.size == HS_LIDAR_XT16_PACKET_SIZE && (m_sLidarType == "PandarXT-16"))) {
+        (packet.size == HS_LIDAR_XT16_PACKET_SIZE && (m_sLidarType == "PandarXT-16")) || \
+        (packet.size == HS_LIDAR_XTM_PACKET_SIZE && (m_sLidarType == "PandarXTM"))) {
+      manage_tf_buffer();
+      if(!computeTransformToFixed(rawpacket.stamp))
+        return; // target frame not available    
       HS_LIDAR_XT_Packet pkt;
       ret = ParseXTData(&pkt, packet.data, packet.size);
       if (ret != 0) {
@@ -845,22 +974,26 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
       scan->packets.push_back(rawpacket);
       for (int i = 0; i < pkt.header.chBlockNumber; ++i) {
         int azimuthGap = 0; /* To do */
+        double timestampGap = 0; /* To do */
         if(last_azimuth_ > pkt.blocks[i].azimuth) {
           azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) + (36000 - static_cast<int>(last_azimuth_));
         } else {
           azimuthGap = static_cast<int>(pkt.blocks[i].azimuth) - static_cast<int>(last_azimuth_);
         }
-
+        timestampGap = pkt.timestamp_point - last_timestamp_ + 0.001;
         if (last_azimuth_ != pkt.blocks[i].azimuth && \
-            azimuthGap < 600 /* 6 degree*/) {
+            (azimuthGap / timestampGap) < MAX_AZIMUTH_DEGREE_NUM * 100 ) {
           /* for all the blocks */
           if ((last_azimuth_ > pkt.blocks[i].azimuth &&
                start_angle_ <= pkt.blocks[i].azimuth) ||
               (last_azimuth_ < start_angle_ &&
                start_angle_ <= pkt.blocks[i].azimuth)) {
             if (pcl_callback_ && (iPointCloudIndex > 0 || PointCloudList[0].size() > 0)) {
+              scan->packets.push_back(SaveCorrectionFile(pkt.header.chLaserNumber));
               EmitBackMessege(pkt.header.chLaserNumber, outMsg, scan);
               scan->packets.clear();
+              if(!computeTransformToTarget(rawpacket.stamp))
+                return; // target frame not available
             }
           }
         } else {
@@ -868,21 +1001,19 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
         }
         CalcXTPointXYZIT(&pkt, i, pkt.header.chLaserNumber, outMsg);
         last_azimuth_ = pkt.blocks[i].azimuth;
+        last_timestamp_ = pkt.timestamp_point;
       }
     } else {
       continue;
     }
 
-    outMsg->header.frame_id = frame_id_;
+    outMsg->header.frame_id = m_sFrameId;
     outMsg->height = 1;
   }
 }
 
 void PandarGeneral_Internal::PushLiDARData(PandarPacket packet) {
-  pthread_mutex_lock(&lidar_lock_);
-  lidar_packets_.push_back(packet);
-  sem_post(&lidar_sem_);
-  pthread_mutex_unlock(&lidar_lock_);
+  m_PacketsBuffer.push_back(packet);
 }
 
 void PandarGeneral_Internal::ProcessGps(const PandarGPS &gpsMsg) {
@@ -974,7 +1105,7 @@ int PandarGeneral_Internal::ParseRawData(Pandar40PPacket *packet,
   packet->t.tm_min = buf[index+4] & 0xff;
   packet->t.tm_sec = buf[index+5] & 0xff;
   packet->t.tm_isdst = 0;
-
+  packet->timestamp_point = mktime(&packet->t) + static_cast<double>(packet->usec) / 1000000.0;
   return 0;
 }
 
@@ -1043,7 +1174,24 @@ int PandarGeneral_Internal::ParseL64Data(HS_LIDAR_L64_Packet *packet,
   packet->addtime[5] = recvbuf[index+5]& 0xff;
 
   index += HS_LIDAR_TIME_SIZE;
+  struct tm tTm = {0};
+  // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
+  // and mktime's year start from 1900 which is 0. so we need add 100 year.
+  tTm.tm_year = packet->addtime[0] + 100;
 
+  // in case of time error
+  if (tTm.tm_year >= 200) {
+    tTm.tm_year -= 100;
+  }
+
+  // UTC's month start from 1, but mktime only accept month from 0.
+  tTm.tm_mon = packet->addtime[1] - 1;
+  tTm.tm_mday = packet->addtime[2];
+  tTm.tm_hour = packet->addtime[3];
+  tTm.tm_min = packet->addtime[4];
+  tTm.tm_sec = packet->addtime[5];
+  tTm.tm_isdst = 0;
+  packet->timestamp_point = mktime(&tTm) + static_cast<double>(packet->timestamp) / 1000000.0;
   return 0;
 }
 
@@ -1110,7 +1258,24 @@ int PandarGeneral_Internal::ParseL20Data(HS_LIDAR_L20_Packet *packet, \
   packet->addtime[5] = recvbuf[index+5]& 0xff;
 
   index += HS_LIDAR_TIME_SIZE;
+  struct tm tTm = {0};
+  // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
+  // and mktime's year start from 1900 which is 0. so we need add 100 year.
+  tTm.tm_year = packet->addtime[0] + 100;
 
+  // in case of time error
+  if (tTm.tm_year >= 200) {
+    tTm.tm_year -= 100;
+  }
+
+  // UTC's month start from 1, but mktime only accept month from 0.
+  tTm.tm_mon = packet->addtime[1] - 1;
+  tTm.tm_mday = packet->addtime[2];
+  tTm.tm_hour = packet->addtime[3];
+  tTm.tm_min = packet->addtime[4];
+  tTm.tm_sec = packet->addtime[5];
+  tTm.tm_isdst = 0;
+  packet->timestamp_point = mktime(&tTm) + static_cast<double>(packet->timestamp) / 1000000.0;
   return 0;
 }
 
@@ -1182,13 +1347,30 @@ int PandarGeneral_Internal::ParseQTData(HS_LIDAR_QT_Packet *packet,
   packet->addtime[5] = recvbuf[index+5]& 0xff;
 
   index += HS_LIDAR_TIME_SIZE;
+  struct tm tTm = {0};
+  // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
+  // and mktime's year start from 1900 which is 0. so we need add 100 year.
+  tTm.tm_year = packet->addtime[0] + 100;
 
+  // in case of time error
+  if (tTm.tm_year >= 200) {
+    tTm.tm_year -= 100;
+  }
+
+  // UTC's month start from 1, but mktime only accept month from 0.
+  tTm.tm_mon = packet->addtime[1] - 1;
+  tTm.tm_mday = packet->addtime[2];
+  tTm.tm_hour = packet->addtime[3];
+  tTm.tm_min = packet->addtime[4];
+  tTm.tm_sec = packet->addtime[5];
+  tTm.tm_isdst = 0;
+  packet->timestamp_point = mktime(&tTm) + static_cast<double>(packet->timestamp) / 1000000.0;
   return 0;
 }
 
 int PandarGeneral_Internal::ParseXTData(HS_LIDAR_XT_Packet *packet,
                                 const uint8_t *recvbuf, const int len) {
-  if (len != HS_LIDAR_XT_PACKET_SIZE && len != HS_LIDAR_XT16_PACKET_SIZE) {
+  if (len != HS_LIDAR_XT_PACKET_SIZE && len != HS_LIDAR_XT16_PACKET_SIZE && len != HS_LIDAR_XTM_PACKET_SIZE) {
     std::cout << "packet size mismatch PandarXT " << len << "," << \
         len << std::endl;
     return -1;
@@ -1249,6 +1431,24 @@ int PandarGeneral_Internal::ParseXTData(HS_LIDAR_XT_Packet *packet,
   packet->timestamp = (recvbuf[index] & 0xff)| (recvbuf[index+1] & 0xff) << 8 | \
       ((recvbuf[index+2] & 0xff) << 16) | ((recvbuf[index+3] & 0xff) << 24);
     // printf("timestamp %u \n", packet->timestamp);
+  struct tm tTm = {0};
+  // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
+  // and mktime's year start from 1900 which is 0. so we need add 100 year.
+  tTm.tm_year = packet->addtime[0] + 100;
+
+  // in case of time error
+  if (tTm.tm_year >= 200) {
+    tTm.tm_year -= 100;
+  }
+
+  // UTC's month start from 1, but mktime only accept month from 0.
+  tTm.tm_mon = packet->addtime[1] - 1;
+  tTm.tm_mday = packet->addtime[2];
+  tTm.tm_hour = packet->addtime[3];
+  tTm.tm_min = packet->addtime[4];
+  tTm.tm_sec = packet->addtime[5];
+  tTm.tm_isdst = 0;
+  packet->timestamp_point = mktime(&tTm) + static_cast<double>(packet->timestamp) / 1000000.0;  
   return 0;
 }
 
@@ -1290,9 +1490,6 @@ void PandarGeneral_Internal::CalcPointXYZIT(Pandar40PPacket *pkt, int blockid,
                                         boost::shared_ptr<PPointCloud> cld) {
   Pandar40PBlock *block = &pkt->blocks[blockid];
 
-  double unix_second =
-      static_cast<double>(mktime(&pkt->t) + tz_second_);
-
   for (int i = 0; i < LASER_COUNT; ++i) {
     /* for all the units in a block */
     Pandar40PUnit &unit = block->units[i];
@@ -1306,12 +1503,13 @@ void PandarGeneral_Internal::CalcPointXYZIT(Pandar40PPacket *pkt, int blockid,
     int azimuth = static_cast<int>(General_horizatal_azimuth_offset_map_[i] * 100 + block->azimuth);
     if(azimuth < 0)
       azimuth += 36000;
-    if(azimuth > 36000)
+    if(azimuth >= 36000)
       azimuth -= 36000;
     float xyDistance = unit.distance * m_cos_elevation_map_[i];
     point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
     point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
     point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+    transformPoint(point.x, point.y, point.z);  
 
     point.intensity = unit.intensity;
 
@@ -1319,8 +1517,7 @@ void PandarGeneral_Internal::CalcPointXYZIT(Pandar40PPacket *pkt, int blockid,
       point.timestamp = m_dPktTimestamp;
     }
     else {
-      point.timestamp = unix_second + \
-        (static_cast<double>(pkt->usec)) / 1000000.0;
+      point.timestamp = pkt->timestamp_point + tz_second_;
 
       if (pkt->echo == 0x39) {
         // dual return, block 0&1 (2&3 , 4*5 ...)'s timestamp is the same.
@@ -1349,27 +1546,6 @@ void PandarGeneral_Internal::CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blo
     char chLaserNumber, boost::shared_ptr<PPointCloud> cld) {
   HS_LIDAR_L64_Block *block = &pkt->blocks[blockid];
 
-  struct tm tTm = {0};
-  // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
-  // and mktime's year start from 1900 which is 0. so we need add 100 year.
-  tTm.tm_year = pkt->addtime[0] + 100;
-
-  // in case of time error
-  if (tTm.tm_year >= 200) {
-    tTm.tm_year -= 100;
-  }
-
-  // UTC's month start from 1, but mktime only accept month from 0.
-  tTm.tm_mon = pkt->addtime[1] - 1;
-  tTm.tm_mday = pkt->addtime[2];
-  tTm.tm_hour = pkt->addtime[3];
-  tTm.tm_min = pkt->addtime[4];
-  tTm.tm_sec = pkt->addtime[5];
-  tTm.tm_isdst = 0;
-
-  double unix_second = \
-      static_cast<double>(mktime(&tTm) + tz_second_);
-
   for (int i = 0; i < chLaserNumber; ++i) {
     /* for all the units in a block */
     HS_LIDAR_L64_Unit &unit = block->units[i];
@@ -1383,12 +1559,13 @@ void PandarGeneral_Internal::CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blo
     int azimuth = static_cast<int>(General_horizatal_azimuth_offset_map_[i] * 100 + block->azimuth);
     if(azimuth < 0)
       azimuth += 36000;
-    if(azimuth > 36000)
+    if(azimuth >= 36000)
       azimuth -= 36000;
     float xyDistance = unit.distance * m_cos_elevation_map_[i];
     point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
     point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
     point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+    transformPoint(point.x, point.y, point.z);  
 
     point.intensity = unit.intensity;
 
@@ -1396,8 +1573,7 @@ void PandarGeneral_Internal::CalcL64PointXYZIT(HS_LIDAR_L64_Packet *pkt, int blo
       point.timestamp = m_dPktTimestamp;
     }
     else {
-      point.timestamp = \
-        unix_second + (static_cast<double>(pkt->timestamp)) / 1000000.0;
+      point.timestamp = pkt->timestamp_point + tz_second_;
 
       if (pkt->echo == 0x39) {
         // dual return, block 0&1 (2&3 , 4*5 ...)'s timestamp is the same.
@@ -1427,27 +1603,6 @@ void PandarGeneral_Internal::CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blo
     char chLaserNumber, boost::shared_ptr<PPointCloud> cld) {
   HS_LIDAR_L20_Block *block = &pkt->blocks[blockid];
 
-  struct tm tTm = {0};
-  // UTC's year only include 0 - 99 year , which indicate 2000 to 2099.
-  // and mktime's year start from 1900 which is 0. so we need add 100 year.
-  tTm.tm_year = pkt->addtime[0] + 100;
-
-  // in case of time error
-  if (tTm.tm_year >= 200) {
-    tTm.tm_year -= 100;
-  }
-
-  // UTC's month start from 1, but mktime only accept month from 0.
-  tTm.tm_mon = pkt->addtime[1] - 1;
-  tTm.tm_mday = pkt->addtime[2];
-  tTm.tm_hour = pkt->addtime[3];
-  tTm.tm_min = pkt->addtime[4];
-  tTm.tm_sec = pkt->addtime[5];
-  tTm.tm_isdst = 0;
-
-  double unix_second = \
-      static_cast<double>(mktime(&tTm) + tz_second_);
-
   for (int i = 0; i < chLaserNumber; ++i) {
     /* for all the units in a block */
     HS_LIDAR_L20_Unit &unit = block->units[i];
@@ -1461,12 +1616,13 @@ void PandarGeneral_Internal::CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blo
     int azimuth = static_cast<int>(General_horizatal_azimuth_offset_map_[i] * 100 + block->azimuth);
     if(azimuth < 0)
       azimuth += 36000;
-    if(azimuth > 36000)
+    if(azimuth >= 36000)
       azimuth -= 36000;
     float xyDistance = unit.distance * m_cos_elevation_map_[i];
     point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
     point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
     point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+    transformPoint(point.x, point.y, point.z);  
 
     point.intensity = unit.intensity;
 
@@ -1474,8 +1630,7 @@ void PandarGeneral_Internal::CalcL20PointXYZIT(HS_LIDAR_L20_Packet *pkt, int blo
       point.timestamp = m_dPktTimestamp;
     }
     else {
-      point.timestamp = unix_second + \
-        (static_cast<double>(pkt->timestamp)) / 1000000.0;
+      point.timestamp = pkt->timestamp_point + tz_second_;
 
       if (pkt->echo == 0x39) {
         // dual return, block 0&1 (2&3 , 4*5 ...)'s timestamp is the same.
@@ -1517,25 +1672,6 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
     char chLaserNumber, boost::shared_ptr<PPointCloud> cld) {
   HS_LIDAR_QT_Block *block = &pkt->blocks[blockid];
 
-  struct tm tTm = {0};
-  tTm.tm_year = pkt->addtime[0] + 100;
-
-  // in case of time error
-  if (tTm.tm_year >= 200) {
-    tTm.tm_year -= 100;
-  }
-
-  // UTC's month start from 1, but mktime only accept month from 0.
-  tTm.tm_mon = pkt->addtime[1] - 1;
-  tTm.tm_mday = pkt->addtime[2];
-  tTm.tm_hour = pkt->addtime[3];
-  tTm.tm_min = pkt->addtime[4];
-  tTm.tm_sec = pkt->addtime[5];
-  tTm.tm_isdst = 0;
-
-  double unix_second = \
-      static_cast<double>(mktime(&tTm) + tz_second_);
-
   for (int i = 0; i < chLaserNumber; ++i) {
     /* for all the units in a block */
     HS_LIDAR_QT_Unit &unit = block->units[i];
@@ -1549,21 +1685,80 @@ void PandarGeneral_Internal::CalcQTPointXYZIT(HS_LIDAR_QT_Packet *pkt, int block
     int azimuth = static_cast<int>(General_horizatal_azimuth_offset_map_[i] * 100 + block->azimuth);
     if(azimuth < 0)
       azimuth += 36000;
-    if(azimuth > 36000)
+    if(azimuth >= 36000)
       azimuth -= 36000;
-    float xyDistance = unit.distance * m_cos_elevation_map_[i];
-    point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
-    point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
-    point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+    if(m_bCoordinateCorrectionFlag){
+      if (m_sin_elevation_map_[i] != 0){
+        float c = (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG +
+                  HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT - 
+                  unit.distance * unit.distance) * 
+                  m_sin_elevation_map_[i] * m_sin_elevation_map_[i];
+        float b = 2 * m_sin_elevation_map_[i] * m_cos_elevation_map_[i] * (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * m_cos_azimuth_map_[azimuth] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT * m_sin_azimuth_map_[azimuth]);
+        point.z = (- b + sqrt(b * b - 4 * c)) / 2;
+        point.x = point.z * m_sin_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+        point.y = point.z * m_cos_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
+        if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
+          (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
+            point.z * m_sin_elevation_map_[i]) <= 0){
+          point.z = (- b - sqrt(b * b - 4 * c)) / 2;
+          point.x = point.z * m_sin_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+          point.y = point.z * m_cos_azimuth_map_[azimuth] * m_cos_elevation_map_[i] / m_sin_elevation_map_[i] + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
+        }
+      }
+      else if (m_cos_azimuth_map_[azimuth] != 0){
+        float tan_azimuth = m_sin_azimuth_map_[azimuth] / m_cos_azimuth_map_[azimuth];
+        float c = (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) *
+                  (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) - 
+                  unit.distance * unit.distance;
+        float a = 1 + tan_azimuth * tan_azimuth;
+        float b = - 2 * tan_azimuth * (HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * tan_azimuth + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT);
+        point.z = 0;
+        point.y = (- b + sqrt(b * b - 4 * a * c)) / (2 * a);
+        point.x = (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * tan_azimuth - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+        if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
+          (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
+            point.z * m_sin_elevation_map_[i]) <= 0){
+          point.z = 0;
+          point.y = (- b - sqrt(b * b - 4 * a * c)) / (2 * a);
+          point.x = (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * tan_azimuth - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT;
+        }
+      }
+      else {
+        point.x = sqrt(unit.distance * unit.distance - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG);
+        point.y = HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
+        point.z = 0;
+        if(((point.x + HS_LIDAR_QT_COORDINATE_CORRECTION_ODOT) * m_cos_elevation_map_[i] * m_sin_azimuth_map_[azimuth] + 
+          (point.y - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG) * m_cos_elevation_map_[i] * m_cos_azimuth_map_[azimuth] + 
+            point.z * m_sin_elevation_map_[i]) <= 0){
+          point.x = - sqrt(unit.distance * unit.distance - HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG * HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG);
+          point.y = HS_LIDAR_QT_COORDINATE_CORRECTION_ODOG;
+          point.z = 0;
+        }
+      }
+      if (COORDINATE_CORRECTION_CHECK){
+        float xyDistance = unit.distance * m_cos_elevation_map_[i];
+        float point_x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]); // without coordinate correction 
+        float point_y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
+        float point_z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+        printf("distance = %f; elevation = %f; azimuth = %f; delta X = %f; delta Y = %f; delta Z = %f; \n", 
+              unit.distance, pandarGeneral_elev_angle_map[i], float(azimuth / 100), point.x - point_x, point.y - point_y, point.z - point_z);
+      }
 
+    }
+    else{
+      float xyDistance = unit.distance * m_cos_elevation_map_[i];
+      point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]); // without coordinate correction 
+      point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
+      point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+    }
+    transformPoint(point.x, point.y, point.z);  
     point.intensity = unit.intensity;
 
     if ("realtime" == m_sTimestampType) {
       point.timestamp = m_dPktTimestamp;
     }
     else {
-      point.timestamp = unix_second + \
-        (static_cast<double>(pkt->timestamp)) / 1000000.0;
+      point.timestamp = pkt->timestamp_point + tz_second_;
 
       if (pkt->echo == 0x05) {
         // dual return, block 0&1 (2&3 , 4*5 ...)'s timestamp is the same.
@@ -1592,25 +1787,6 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
     char chLaserNumber, boost::shared_ptr<PPointCloud> cld) {
   HS_LIDAR_XT_Block *block = &pkt->blocks[blockid];
 
-  struct tm tTm = {0};
-  tTm.tm_year = pkt->addtime[0] + 100;
-
-  // in case of time error
-  if (tTm.tm_year >= 200) {
-    tTm.tm_year -= 100;
-  }
-
-  // UTC's month start from 1, but mktime only accept month from 0.
-  tTm.tm_mon = pkt->addtime[1] - 1;
-  tTm.tm_mday = pkt->addtime[2];
-  tTm.tm_hour = pkt->addtime[3];
-  tTm.tm_min = pkt->addtime[4];
-  tTm.tm_sec = pkt->addtime[5];
-  tTm.tm_isdst = 0;
-
-  double unix_second = \
-      static_cast<double>(mktime(&tTm) + tz_second_);
-
   for (int i = 0; i < chLaserNumber; ++i) {
     /* for all the units in a block */
     HS_LIDAR_XT_Unit &unit = block->units[i];
@@ -1624,23 +1800,48 @@ void PandarGeneral_Internal::CalcXTPointXYZIT(HS_LIDAR_XT_Packet *pkt, int block
     int azimuth = static_cast<int>(General_horizatal_azimuth_offset_map_[i] * 100 + block->azimuth);
     if(azimuth < 0)
       azimuth += 36000;
-    if(azimuth > 36000)
+    if(azimuth >= 36000)
       azimuth -= 36000;
-    float xyDistance = unit.distance * m_cos_elevation_map_[i];
-    point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
-    point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
-    point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
 
+    if(m_bCoordinateCorrectionFlag){
+      float distance = unit.distance - (m_cos_azimuth_map_h[abs(int(General_horizatal_azimuth_offset_map_[i] * 100))] * m_cos_elevation_map_[i] -
+                      m_sin_azimuth_map_b[abs(int(General_horizatal_azimuth_offset_map_[i] * 100))] * m_cos_elevation_map_[i]);
+      float xyDistance = distance * m_cos_elevation_map_[i];
+      point.x = xyDistance * m_sin_azimuth_map_[azimuth] - m_cos_azimuth_map_b[azimuth] + m_sin_azimuth_map_h[azimuth];
+      point.y = xyDistance * m_cos_azimuth_map_[azimuth] + m_sin_azimuth_map_b[azimuth] + m_cos_azimuth_map_h[azimuth];
+      point.z = distance * m_sin_elevation_map_[i];
+
+      if (COORDINATE_CORRECTION_CHECK){
+        float xyDistance = unit.distance * m_cos_elevation_map_[i];
+        float point_x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
+        float point_y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
+        float point_z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+        printf("distance = %f; elevation = %f; azimuth = %f; delta X = %f; delta Y = %f; delta Z = %f; \n", 
+              unit.distance, pandarGeneral_elev_angle_map[i], float(azimuth / 100), point.x - point_x, point.y - point_y, point.z - point_z);
+      }
+    }
+    else{
+      float xyDistance = unit.distance * m_cos_elevation_map_[i];
+      point.x = static_cast<float>(xyDistance * m_sin_azimuth_map_[azimuth]);
+      point.y = static_cast<float>(xyDistance * m_cos_azimuth_map_[azimuth]);
+      point.z = static_cast<float>(unit.distance * m_sin_elevation_map_[i]);
+    }
+    transformPoint(point.x, point.y, point.z);  
     point.intensity = unit.intensity;
 
     if ("realtime" == m_sTimestampType) {
       point.timestamp = m_dPktTimestamp;
     }
     else {
-      point.timestamp = unix_second + \
-        (static_cast<double>(pkt->timestamp)) / 1000000.0;
+      point.timestamp = pkt->timestamp_point + tz_second_;
 
-      if (pkt->echo == 0x39) {
+      if (pkt->echo == 0x3d){
+        point.timestamp =
+            point.timestamp + (static_cast<double>(blockXTOffsetTriple_[blockid] +
+                                                  laserXTOffset_[i]) /
+                              1000000.0f);
+      }
+      else if (pkt->echo == 0x39 || pkt->echo == 0x3b || pkt->echo == 0x3c) {
         point.timestamp =
             point.timestamp + (static_cast<double>(blockXTOffsetDual_[blockid] +
                                                   laserXTOffset_[i]) /
@@ -1689,12 +1890,68 @@ void PandarGeneral_Internal::EmitBackMessege(char chLaserNumber, boost::shared_p
 }
 
 void PandarGeneral_Internal::PushScanPacket(hesai_lidar::PandarScanPtr scan) {
-  for(int i = 0; i<scan->packets.size(); i++) {
-    PandarPacket pkt;
-    pkt.stamp = scan->packets[i].stamp.sec + scan->packets[i].stamp.nsec / 1000000000.0;
-    pkt.size = scan->packets[i].size;
-    memcpy(&pkt.data[0], &(scan->packets[i].data[0]), scan->packets[i].size);
-    PushLiDARData(pkt);
+  for(int i = 0; i < scan->packets.size(); i++) {
+    if (scan->packets[i].data[0] == 0x47 && scan->packets[i].data[1] == 0x74){  //correction file
+      if (got_lidar_correction_flag){
+        continue;
+      }
+      else{
+        std::cout << "Load correction file from rosbag" << std::endl;
+        int correction_lenth = ((scan->packets[i].data[4] & 0xff) << 24) | ((scan->packets[i].data[5] & 0xff) << 16) | 
+                              ((scan->packets[i].data[6] & 0xff) << 8) | ((scan->packets[i].data[7] & 0xff) << 0);
+        if (correction_lenth == scan->packets[i].size){
+          char buffer[correction_lenth];
+          memcpy(buffer, &(scan->packets[i].data[8]), scan->packets[i].size);
+          std::string correction_string = std::string(buffer);
+          int ret = LoadCorrectionFile(correction_string);
+          if (ret != 0) {
+            std::cout << "Load correction file from rosbag failed" << std::endl;
+          } 
+          else {
+            std::cout << "Load correction file from rosbag succeed" << std::endl;
+            got_lidar_correction_flag = true;
+          }
+        }
+        else{
+          printf("Load correction file from rosbag failed");
+        } 
+        if(!got_lidar_correction_flag){
+          std::ifstream fin(correction_file_path_);
+          if (fin.is_open()) {
+            std::cout << "Open correction file " << correction_file_path_ << " succeed" << std::endl;
+          }
+          else{
+            std::cout << "Open correction file " << correction_file_path_ <<" failed" << std::endl;
+            got_lidar_correction_flag = true;
+            continue;
+          }
+          int length = 0;
+          std::string strlidarCalibration;
+          fin.seekg(0, std::ios::end);
+          length = fin.tellg();
+          fin.seekg(0, std::ios::beg);
+          char *buffer = new char[length];
+          fin.read(buffer, length);
+          fin.close();
+          strlidarCalibration = buffer;
+          int ret = LoadCorrectionFile(strlidarCalibration);
+          if (ret != 0) {
+            std::cout << "Load correction file from " << correction_file_path_ <<" failed" << std::endl;
+          } else {
+            std::cout << "Load correction file from " << correction_file_path_ << " succeed" << std::endl;
+          }
+          got_lidar_correction_flag = true;
+        }
+
+      }
+    }
+    else {                                                                  //pcap
+      PandarPacket pkt;
+      pkt.stamp = scan->packets[i].stamp.sec + scan->packets[i].stamp.nsec / 1000000000.0;
+      pkt.size = scan->packets[i].size;
+      memcpy(&pkt.data[0], &(scan->packets[i].data[0]), scan->packets[i].size);
+      PushLiDARData(pkt);
+    }
   }
 }
 
@@ -1713,7 +1970,7 @@ void PandarGeneral_Internal::SetEnvironmentVariableTZ(){
   t1 = mktime(tm_local) ;
   tm_utc = gmtime(&t2);
   t2 = mktime(tm_utc);
-  timezone = t2 >= t1 ? (t2 - t1) / 3600 : (t1 - t2) / 3600;
+  timezone = 0;
   std::string data = "TZ=UTC" + std::to_string(timezone);
   int len = data.length();
   TZ = (char *)malloc((len + 1) * sizeof(char));
@@ -1726,4 +1983,141 @@ void PandarGeneral_Internal::SetEnvironmentVariableTZ(){
   }
 }
 
+hesai_lidar::PandarPacket PandarGeneral_Internal::SaveCorrectionFile(int laserNumber){
+  hesai_lidar::PandarPacket result;
+  std::stringstream content;
+  content<< "Laser id,Elevation,Azimuth" << std::endl;
+  for(int i = 0; i < laserNumber; i++){
+    content<< (i + 1) << "," << General_elev_angle_map_[i] << "," << General_horizatal_azimuth_offset_map_[i] << std::endl;
+  }
+  int length = content.str().size();
+  result.size = length;
+  result.data.resize(length + 8);
+  result.data[0] = 0x47;
+  result.data[1] = 0x74;
+  result.data[2] = 0x05;
+  result.data[3] = 0x00;
+  result.data[4] = (length >> 24) & 0xff;
+  result.data[5] = (length >> 16) & 0xff;
+  result.data[6] = (length >> 8) & 0xff;
+  result.data[7] = (length) & 0xff;
+  memcpy(&result.data[8], content.str().c_str(), length);
+  return result;
+}
+
+bool PandarGeneral_Internal::GetCorrectionFileFlag(){
+  return got_lidar_correction_flag;
+}
+
+void PandarGeneral_Internal::SetCorrectionFileFlag(bool flag ){
+  got_lidar_correction_flag = flag;
+}
+
+
+void PandarGeneral_Internal::manage_tf_buffer()
+  {
+    // check if sensor frame is already known, if not don't prepare tf buffer until setup was called
+    if ( m_sSensorFrame.empty())
+    {
+      return;
+    }
+
+    // avoid doing transformation when  m_sSensorFrame equals target frame and no ego motion compensation is perfomed
+    if (m_sFixedFrame.empty() &&  m_sSensorFrame == m_sTargetFrame)
+    {
+      // when the string is empty the points will not be transformed later on
+      m_sTargetFrame = "";
+      return;
+    }
+
+    // only use somewhat resource intensive tf listener when transformations are necessary
+    if (!m_sFixedFrame.empty() || !m_sTargetFrame.empty())
+    {
+      if (!m_tf_buffer)
+      {
+        m_tf_buffer = std::make_shared<tf2_ros::Buffer>();
+        m_tf_listener = std::make_shared<tf2_ros::TransformListener>(*m_tf_buffer);
+      }
+    }
+    else
+    {
+      m_tf_listener.reset();
+      m_tf_buffer.reset();
+    }
+  }
+
+  bool PandarGeneral_Internal::calculateTransformMatrix(Eigen::Affine3f& matrix, const std::string& target_frame,
+                                       const std::string& source_frame, const ros::Time& time)
+  {
+    if (!m_tf_buffer)
+    {
+      ROS_ERROR("tf buffer was not initialized yet");
+      return false;
+    }
+
+    geometry_msgs::TransformStamped msg;
+    try
+    {
+      msg = m_tf_buffer->lookupTransform(target_frame, source_frame, time, ros::Duration(0.2));
+    }
+    catch (tf2::LookupException& e)
+    {
+      ROS_ERROR("%s", e.what());
+      return false;
+    }
+    catch (tf2::ExtrapolationException& e)
+    {
+      ROS_ERROR("%s", e.what());
+      return false;
+    }
+
+    const geometry_msgs::Quaternion& quaternion = msg.transform.rotation;
+    Eigen::Quaternionf rotation(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
+
+    const geometry_msgs::Vector3& origin = msg.transform.translation;
+    Eigen::Translation3f translation(origin.x, origin.y, origin.z);
+
+    matrix = translation * rotation;
+    return true;
+  }
+
+  bool PandarGeneral_Internal::computeTransformToTarget(const ros::Time &scan_time)
+  {
+    if (m_sTargetFrame.empty())
+    {
+      // no need to calculate transform -> success
+      return true;
+    }
+    std::string& source_frame = m_sFixedFrame.empty() ?  m_sSensorFrame : m_sFixedFrame;
+    return calculateTransformMatrix(m_tf_matrix_to_target, m_sTargetFrame, source_frame, scan_time);
+  }
+
+  bool PandarGeneral_Internal::computeTransformToFixed(const ros::Time &packet_time)
+  {
+    if (m_sFixedFrame.empty())
+    {
+      // no need to calculate transform -> success
+      return true;
+    }
+    std::string &source_frame =  m_sSensorFrame;
+    return calculateTransformMatrix(m_tf_matrix_to_fixed, m_sFixedFrame, source_frame, packet_time);
+  }
+
+  void PandarGeneral_Internal::transformPoint(float& x, float& y, float& z)
+  {
+    if(m_sFixedFrame.empty() && m_sTargetFrame.empty())
+      return;
+    Eigen::Vector3f p = Eigen::Vector3f(x, y, z);
+    if (!m_sFixedFrame.empty())
+    {
+      p = m_tf_matrix_to_fixed * p;
+    }
+    if (!m_sTargetFrame.empty())
+    {
+      p = m_tf_matrix_to_target * p;
+    }
+    x = p.x();
+    y = p.y();
+    z = p.z();
+  }
 

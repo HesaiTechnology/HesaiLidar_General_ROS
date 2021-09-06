@@ -20,4 +20,12 @@
   <depend>image_transport</depend>
   <depend>pcl_conversions</depend>
   <depend>livox_ros_driver</depend>
+  <build_depend>nodelet</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <exec_depend>nodelet</exec_depend>
+  <exec_depend>pluginlib</exec_depend>
+  <export>
+    <nodelet plugin="${prefix}/nodelets.xml"/>
+  </export>
+>>>>>>> Hesai_upstream/master
 </package>

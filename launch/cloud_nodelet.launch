@@ -11,22 +11,18 @@
 	<arg name="pcldata_type" default="0"/>
 	<arg name="publish_type" default="points"/>
 	<arg name="timestamp_type" default=""/>
-<<<<<<< HEAD
-	<arg name="data_type" default=""/>roslaunch hesai_lidar hesai_lidar.launch lidar_type:="Pandar40P" frame_id:="Pandar40P"
-	<!-- <arg name="namespace" default="hesai"/> -->
-	<arg name="namespace" default="livox"/>
-	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/correction.csv"/>
-=======
 	<arg name="data_type" default=""/>
 	<arg name="namespace" default="hesai"/>
 	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/Pandar64.csv"/>
 	<arg name="multicast_ip"  default=""/>
 	<arg name="coordinate_correction_flag"  default="false"/>
+	<arg name="manager" default="pandar_nodelet_manager" />
 	<arg name="fixed_frame"  default=""/>
 	<arg name="target_frame"  default=""/>
->>>>>>> Hesai_upstream/master
-
-	<node pkg="hesai_lidar" name="hesai_lidar" ns="$(arg namespace)" type="hesai_lidar_node" output="screen" >
+	 <!-- start nodelet manager -->
+	<!-- <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" /> -->
+    <node pkg="nodelet" type="nodelet" name="$(arg manager)" ns="$(arg namespace)" args="manager" output="screen" />
+	<node pkg="nodelet" type="nodelet" name="$(arg manager)_cloud" ns="$(arg namespace)" args="load pandar_pointcloud/CloudNodelet $(arg manager)" output="screen">
 		<param name="pcap_file" type="string" value="$(arg pcap_file)"/>
 		<param name="server_ip" type="string" value="$(arg server_ip)"/>
 		<param name="lidar_recv_port"  type="int" value="$(arg lidar_recv_port)"/>

@@ -2,9 +2,11 @@ cmake_minimum_required(VERSION 2.8.3)
 project(hesai_lidar)
 
 # Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
 
-find_package(Boost REQUIRED )
+ADD_COMPILE_OPTIONS(-std=c++11 )
+ADD_COMPILE_OPTIONS(-std=c++14 )
+
+find_package( Boost REQUIRED  COMPONENTS thread)
 find_package(PCL REQUIRED)
 
 find_package(PkgConfig REQUIRED)
@@ -22,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
     image_transport
     pcl_conversions
     message_generation
+    tf
 )
 add_message_files(
     FILES
@@ -56,6 +59,7 @@ target_include_directories(PandarGeneral PRIVATE
 target_link_libraries(PandarGeneral
     ${Boost_LIBRARIES}
     ${PCL_IO_LIBRARIES}
+    Boost::thread
     pcap
 )
 
@@ -81,6 +85,7 @@ target_link_libraries(PandarGeneralSDK
     ${PCL_IO_LIBRARIES}
     ${YAML_CPP_LIBRARIES}
     ${catkin_LIBRARIES}
+    Boost::thread
     pcap
 )
 
@@ -98,6 +103,22 @@ target_include_directories(hesai_lidar_node PRIVATE
 )
 
 target_link_libraries(hesai_lidar_node 
+    ${catkin_LIBRARIES}
+    ${PCL_IO_LIBRARIES}
+    PandarGeneralSDK
+)
+
+add_library(cloud_nodelet src/cloud_nodelet.cc)
+
+target_include_directories(cloud_nodelet PRIVATE
+    src/HesaiLidar_General_SDK/include
+    src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
+    ${PCL_INCLUDE_DIRS}
+    ${catkin_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(cloud_nodelet
     ${catkin_LIBRARIES}
     ${PCL_IO_LIBRARIES}
     PandarGeneralSDK
