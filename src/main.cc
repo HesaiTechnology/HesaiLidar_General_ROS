@@ -119,9 +119,7 @@ public:
       livox_ros_driver::CustomMsg output;
 
       int input_point_size = cld->width;
-      std::cout << "width = " << cld->width <<std::endl;
       output.points.reserve(input_point_size+1); // [input_point_size]要素(以上)の領域を事前に確保しておく
-      // output.lidar_id =
       // output.rsvd =
       output.err.time_sync_status = 2;
       output.err.pps_status = 1;
@@ -183,7 +181,6 @@ public:
           // std::cout << sub_output.offset_time << std::endl;
           // printf("\n---------------------------\n");
         //  }
-
         sub_output.x = cld->points[i].x;
         sub_output.y = cld->points[i].y;
         sub_output.z = cld->points[i].z;
@@ -197,16 +194,17 @@ public:
         output.points.push_back(sub_output);
       }
       std::cout << "width = " << cld->width <<std::endl;
+      std::cout << "height = " << cld->height <<std::endl;
+
       std::cout << "reserved = " << output.points.size() <<std::endl;
-      std::cout << "capacity = " << output.points.capacity() <<std::endl;
+      // std::cout << "capacity = " << output.points.capacity() <<std::endl;
           
           // sub_output.offset_time = cld->points[input_point_num-1].timestamp;
       output.point_num = output.points.size(); //★
-      std::cout << " output.points.size() = " << output.points.size() <<std::endl;
+      // std::cout << " output.points.size() = " << output.points.size() <<std::endl;
 
-      std::cout << "---------------------------" <<std::endl;
+      std::cout << "---------------------------" << std::endl;
 
-          // output.point_num = cld -> points.size();
           
           lidarPublisher.publish(output);
       // printf("timebase:%f ,timestamp: %f, point size: %d, width: %d.\n",output.timebase,timestamp,input_point_size,cld->width);

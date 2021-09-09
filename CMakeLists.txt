@@ -5,6 +5,7 @@ project(hesai_lidar)
 
 ADD_COMPILE_OPTIONS(-std=c++11 )
 ADD_COMPILE_OPTIONS(-std=c++14 )
+ADD_COMPILE_OPTIONS(-O2)
 
 find_package( Boost REQUIRED  COMPONENTS thread)
 find_package(PCL REQUIRED)
@@ -63,6 +64,9 @@ target_link_libraries(PandarGeneral
     pcap
 )
 
+#
+# target_compile_options(PandarGeneral PRIVATE "-g")
+
 ###PandarGeneralSDK
 add_library(PandarGeneralSDK SHARED
     src/HesaiLidar_General_SDK/src/pandarGeneral_sdk.cc
@@ -88,6 +92,7 @@ target_link_libraries(PandarGeneralSDK
     Boost::thread
     pcap
 )
+# target_compile_options(PandarGeneralSDK PRIVATE "-g")
 
 ###hesai node
 add_executable(hesai_lidar_node
@@ -107,6 +112,7 @@ target_link_libraries(hesai_lidar_node
     ${PCL_IO_LIBRARIES}
     PandarGeneralSDK
 )
+# target_compile_options(hesai_lidar_node PRIVATE "-g")
 
 add_library(cloud_nodelet src/cloud_nodelet.cc)
 
