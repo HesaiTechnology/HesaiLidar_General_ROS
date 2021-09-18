@@ -14,7 +14,8 @@ Developed based on [HesaiLidar_General_SDK](https://github.com/HesaiTechnology/H
 
 　Recommanded:  
 　Ubuntu 16.04 - with ROS kinetic desktop-full installed or  
-　Ubuntu 18.04 - with ROS melodic desktop-full installed  
+　Ubuntu 18.04 - with ROS melodic desktop-full installed or
+  Ubuntu 20.04 - with ROS noetic desktop-full installed 
 　Check resources on http://ros.org for installation guide 
  
 **Library Dependencies: libpcap-dev + libyaml-cpp-dev**  
