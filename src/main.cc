@@ -10,6 +10,7 @@
 #include <iostream>
 
 
+
 #include <fstream>
 // #define PRINT_FLAG 
 
@@ -147,7 +148,8 @@ public:
       double d_timebase_double = timebase_double - pre_timebase_double;
       uint64_t d_timebase_uint64 = timebase_uint64 - pre_timebase_uint64;
       if(d_timestamp > 1.00){
-        ROS_WARN("The time distance between the two points is too wide.");
+        // ROS_WARN("The time distance between the two points is too wide.");
+        std::cout << "ROS_WARN : The time distance between the two points is too wide."<<"\n";
         std::cout << "pre_timestamp = " << pre_timestamp << ", pre_timebase_double = " << pre_timebase_double << ", pre_timebase_uint64 = " << pre_timebase_uint64 <<"\n";
         std::cout << "timestamp = " << timestamp << ", timebase_double = " << timebase_double << ", timebase_uint64 = " << timebase_uint64 << ", d_timestamp = " << d_timestamp << ", d_timebase_double = " << d_timebase_double << ", d_timebase_uint64 = " << d_timebase_uint64 <<"\n";
       } 

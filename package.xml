@@ -27,5 +27,4 @@
   <export>
     <nodelet plugin="${prefix}/nodelets.xml"/>
   </export>
->>>>>>> Hesai_upstream/master
 </package>

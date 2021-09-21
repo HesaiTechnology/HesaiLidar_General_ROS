@@ -4,7 +4,7 @@
 	<arg name="lidar_recv_port"  default="2368"/>
 	<arg name="gps_port"  default="10110"/>
 	
-	<arg name="start_angle"  default="90"/>
+	<arg name="start_angle"  default="0"/>
 	<!--“lidar_type” represents the model of the lidar-->
 	<arg name="lidar_type" default=""/>
 	<!--"frame_id" represents the id of the point cloud data published to ROS-->
