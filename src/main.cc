@@ -195,17 +195,17 @@ public:
         // }
         output.points.push_back(sub_output);
       }
-      std::cout << "width = " << cld->width <<std::endl;
-      std::cout << "height = " << cld->height <<std::endl;
+      // std::cout << "width = " << cld->width <<std::endl;
+      // std::cout << "height = " << cld->height <<std::endl;
 
-      std::cout << "reserved = " << output.points.size() <<std::endl;
+      // std::cout << "reserved = " << output.points.size() <<std::endl;
       // std::cout << "capacity = " << output.points.capacity() <<std::endl;
           
           // sub_output.offset_time = cld->points[input_point_num-1].timestamp;
       output.point_num = output.points.size(); //★
       // std::cout << " output.points.size() = " << output.points.size() <<std::endl;
 
-      std::cout << "---------------------------" << std::endl;
+      // std::cout << "---------------------------" << std::endl;
 
           
           lidarPublisher.publish(output);

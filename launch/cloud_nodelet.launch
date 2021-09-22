@@ -1,5 +1,5 @@
 <launch>
-	<arg name="pcap_file"  default=""/> -->
+	<arg name="pcap_file"  default=""/> 
 	<arg name="server_ip" default="192.168.1.201"/>
 	<arg name="lidar_recv_port"  default="2368"/>
 	<arg name="gps_port"  default="10110"/>
@@ -20,7 +20,7 @@
 	<arg name="target_frame"  default=""/> 
 	<arg name="manager" default="pandar_nodelet_manager" />
 	 <!-- ## start nodelet manager -->
-	<node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" />
+	<!-- <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" /> -->
     <node pkg="nodelet" type="nodelet" name="$(arg manager)" ns="$(arg namespace)" args="manager" output="screen" />
 	<node pkg="nodelet" type="nodelet" name="$(arg manager)_cloud" ns="$(arg namespace)" args="load pandar_pointcloud/CloudNodelet $(arg manager)" output="screen">
 		<param name="pcap_file" type="string" value="$(arg pcap_file)"/>
