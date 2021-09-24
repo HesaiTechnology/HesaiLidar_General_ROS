@@ -114,18 +114,14 @@ public:
     if (m_sPublishType == "both" || m_sPublishType == "points")
     {
       pcl_conversions::toPCL(ros::Time(timestamp), cld->header.stamp);
-// <<<<<<< HEAD
-      // sensor_msgs::PointCloud2 output;
-      // pcl::toROSMsg(*cld, output);
       livox_ros_driver::CustomMsg output;
-
       int input_point_size = cld->width;
       output.points.reserve(input_point_size+1); // [input_point_size]要素(以上)の領域を事前に確保しておく
       // output.rsvd =
       output.err.time_sync_status = 2;
       output.err.pps_status = 1;
       output.err.system_status = 0;
-      static int publish_count;
+      static int publish_count = 0;
       publish_count++;
       output.header.seq = publish_count;
 
@@ -148,7 +144,6 @@ public:
       double d_timebase_double = timebase_double - pre_timebase_double;
       uint64_t d_timebase_uint64 = timebase_uint64 - pre_timebase_uint64;
       if(d_timestamp > 1.00){
-        // ROS_WARN("The time distance between the two points is too wide.");
         std::cout << "ROS_WARN : The time distance between the two points is too wide."<<"\n";
         std::cout << "pre_timestamp = " << pre_timestamp << ", pre_timebase_double = " << pre_timebase_double << ", pre_timebase_uint64 = " << pre_timebase_uint64 <<"\n";
         std::cout << "timestamp = " << timestamp << ", timebase_double = " << timebase_double << ", timebase_uint64 = " << timebase_uint64 << ", d_timestamp = " << d_timestamp << ", d_timebase_double = " << d_timebase_double << ", d_timebase_uint64 = " << d_timebase_uint64 <<"\n";
@@ -162,27 +157,12 @@ public:
       for (int i = 0; i < input_point_size; i++)
       {
         livox_ros_driver::CustomPoint sub_output;
-      
-          // printf("msg.timebase : %d\n",output.timebase);
-          double timestamp_double_ns_point_i = cld->points[i].timestamp*1e9;
-          // printf("timestamp_double_ns_point_%d: %f\n", i, timestamp_double_ns_point_i);
-          uint64_t timestamp_uint64_ns_point_i = (uint64_t) timestamp_double_ns_point_i;
-          // printf("timestamp_uint64_ns_point_%d :", i);
-          // std::cout << timestamp_uint64_ns_point_i << std::endl;
-          uint32_t timestamp_uint32_ns_point_i = static_cast<uint32_t>(timestamp_uint64_ns_point_i);
-          // printf("timestamp_uint32_ns_point_%d :", i);
-          // std::cout << timestamp_uint32_ns_point_i << std::endl;
-
-          uint32_t timebase_uint32 = (uint32_t)timebase_uint64;
-          // printf("\ntimebase_uint32 : %d\n",timebase_uint32);
-          uint32_t time_offset_ns_point_i = timestamp_uint32_ns_point_i - timebase_uint32;
-          // printf("time_offset_ns_point_%d : ", i);
-          // std::cout << time_offset_ns_point_i << std::endl;
-          sub_output.offset_time = (uint32_t)(time_offset_ns_point_i);
-          // printf("\nmsg.offset_time :");
-          // std::cout << sub_output.offset_time << std::endl;
-          // printf("\n---------------------------\n");
-        //  }
+        double timestamp_double_ns_point_i = cld->points[i].timestamp*1e9;
+        uint64_t timestamp_uint64_ns_point_i = (uint64_t) timestamp_double_ns_point_i;
+        uint32_t timestamp_uint32_ns_point_i = static_cast<uint32_t>(timestamp_uint64_ns_point_i);
+        uint32_t timebase_uint32 = (uint32_t)timebase_uint64;
+        uint32_t time_offset_ns_point_i = timestamp_uint32_ns_point_i - timebase_uint32;
+        sub_output.offset_time = (uint32_t)(time_offset_ns_point_i);
         sub_output.x = cld->points[i].x;
         sub_output.y = cld->points[i].y;
         sub_output.z = cld->points[i].z;
@@ -197,37 +177,15 @@ public:
       }
       // std::cout << "width = " << cld->width <<std::endl;
       // std::cout << "height = " << cld->height <<std::endl;
-
       // std::cout << "reserved = " << output.points.size() <<std::endl;
       // std::cout << "capacity = " << output.points.capacity() <<std::endl;
-          
-          // sub_output.offset_time = cld->points[input_point_num-1].timestamp;
+      // sub_output.offset_time = cld->points[input_point_num-1].timestamp;
       output.point_num = output.points.size(); //★
       // std::cout << " output.points.size() = " << output.points.size() <<std::endl;
-
       // std::cout << "---------------------------" << std::endl;
-
-          
-          lidarPublisher.publish(output);
-      // printf("timebase:%f ,timestamp: %f, point size: %d, width: %d.\n",output.timebase,timestamp,input_point_size,cld->width);
-    }
-    if(m_sPublishType == "both" || m_sPublishType == "raw"){
-      packetPublisher.publish(scan);
-      // printf("raw size: %d.\n", scan->packets.size());
-// =======
-//       sensor_msgs::PointCloud2 output;
-//       pcl::toROSMsg(*cld, output);
-//       lidarPublisher.publish(output);
-// #ifdef PRINT_FLAG
-//         printf("timestamp: %f, point size: %ld.\n",timestamp, cld->points.size());
-// #endif        
-//     }
-//     if(m_sPublishType == "both" || m_sPublishType == "raw"){
-//       packetPublisher.publish(scan);
-// #ifdef PRINT_FLAG
-//         printf("raw size: %d.\n", scan->packets.size());
-// #endif
-// >>>>>>> Hesai_upstream/master
+      lidarPublisher.publish(output);
+      // printf("timebase:%f ,timestamp: %f, dt:%f, point size: %d, width: %d.\n",output.timebase,timestamp,d_timestamp,input_point_size,cld->width);
+      printf("%ld : dt=%.1f,width=%06d, -> ptsrate=%.1f[kpts/s], \n",output.timebase,d_timestamp,cld->width,cld->width/1000.0/d_timestamp);
     }
   }
 
@@ -235,6 +193,7 @@ public:
     #ifdef PRINT_FLAG
        printf("gps: %d\n", timestamp);
     #endif      
+    printf("gps: %d\n", timestamp);
 
   }
 
