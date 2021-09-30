@@ -66,7 +66,7 @@ PandarGeneralROS_1.1.7
 
 Wednesday, April 6th, 2021 17:30
 ##version
-PandarGeneralSDK_1.1.8
+PandarGeneralROS_1.1.8
 
 ##modify
 1. Support XTM
@@ -74,7 +74,7 @@ PandarGeneralSDK_1.1.8
 
 Sunday, August 15th, 2021 17:30
 ##version
-PandarGeneralSDK_1.1.11
+PandarGeneralROS_1.1.11
 
 ##modify
 1. Support ubuntu 20.04
@@ -84,7 +84,14 @@ PandarGeneralSDK_1.1.11
 
 Sunday, August 22th, 2021 17:30
 ##version
-PandarGeneralSDK_1.1.12
+PandarGeneralROS_1.1.12
 
 ##modify
 1. Chang return type to void of function without return
+
+Thursday, September 30th, 2021 17:30
+##version
+PandarGeneralROS_1.1.13
+
+##modify
+1. Support ipv6

@@ -87,24 +87,44 @@ int sys_writen(int fd, const void* vptr, int n) {
 
 int tcp_open(const char* ipaddr, int port) {
   int sockfd;
-  struct sockaddr_in servaddr;
+  const char* isIpV6 = strchr(ipaddr, ':');
+  if(isIpV6 == NULL){
+    struct sockaddr_in servaddr;
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) return -1;
 
-  if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) return -1;
+    bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(port);
+    if (inet_pton(AF_INET, ipaddr, &servaddr.sin_addr) <= 0) {
+      close(sockfd);
+      return -1;
+    }
 
-  bzero(&servaddr, sizeof(servaddr));
-  servaddr.sin_family = AF_INET;
-  servaddr.sin_port = htons(port);
-  if (inet_pton(AF_INET, ipaddr, &servaddr.sin_addr) <= 0) {
-    close(sockfd);
-    return -1;
+    if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1) {
+      close(sockfd);
+      return -1;
+    }
+    printf("open !!!!!\n");
+    return sockfd;
+
   }
+  else{
+    struct sockaddr_in6 addr;
+    if ((sockfd = socket(AF_INET6, SOCK_STREAM, 0)) == -1) return -1;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin6_family = AF_INET6;
+    if (!inet_pton(AF_INET6, ipaddr, &(addr.sin6_addr))) {
+      close(sockfd);
+      return -1;
+    }
+    addr.sin6_port = htons(port);
+    if (connect(sockfd, (struct sockaddr_in6*)&addr, sizeof(addr)) == -1) {
+      close(sockfd);
+      return -1;
+    }
+    return sockfd;
 
-  if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1) {
-    close(sockfd);
-    return -1;
   }
-
-  return sockfd;
 }
 
 /**

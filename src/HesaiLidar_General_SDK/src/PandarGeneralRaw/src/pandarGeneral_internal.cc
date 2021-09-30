@@ -103,7 +103,7 @@ PandarGeneral_Internal::PandarGeneral_Internal(
   enable_lidar_recv_thr_ = false;
   enable_lidar_process_thr_ = false;
 
-  input_.reset(new Input(lidar_port, gps_port, multicast_ip));
+  input_.reset(new Input(device_ip, lidar_port, gps_port, multicast_ip));
 
   start_angle_ = start_angle;
   pcl_callback_ = pcl_callback;
