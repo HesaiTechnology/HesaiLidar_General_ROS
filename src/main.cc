@@ -6,7 +6,7 @@
 #include <pcl/point_types.h>
 #include "pandarGeneral_sdk/pandarGeneral_sdk.h"
 #include <fstream>
-#define PRINT_FLAG 
+// #define PRINT_FLAG 
 
 using namespace std;
 
