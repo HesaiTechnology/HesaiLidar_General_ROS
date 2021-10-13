@@ -2,12 +2,17 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 #include "pcap_reader.h"
 #include "log.h"
 #include <map>
 #include "../util.h"
 
-#define PKT_HEADER_SIZE (42)
+#define IPV4_PKT_HEADER_SIZE (42)
+#define IPV6_PKT_HEADER_SIZE (62)
+#define IPV4_TYPE (0X0800)
+#define IPV6_TYPE (0X86dd)
+#define MAC_PACKET_HEADER_LEN (12)
 
 PcapReader::PcapReader(std::string path, std::string frame_id) {
   initTimeIndexMap();
@@ -102,8 +107,24 @@ void PcapReader::parsePcap() {
     return;
   }
   while (pcap_next_ex(pcapFile, &pktHeader, &packetBuf) >= 0 && loop) {
-    const uint8_t *packet = packetBuf + PKT_HEADER_SIZE;
-    int pktSize = pktHeader->len - PKT_HEADER_SIZE;
+    uint16_t ip_type = htons(*(uint16_t *)(packetBuf + MAC_PACKET_HEADER_LEN));
+    const uint8_t *packet = nullptr;
+    int pktSize = 0;
+    switch (ip_type)
+    {
+    case IPV4_TYPE:
+      packet = packetBuf + IPV4_PKT_HEADER_SIZE;
+      pktSize = pktHeader->len - IPV4_PKT_HEADER_SIZE;
+      break;
+    case IPV6_TYPE:
+      packet = packetBuf + IPV6_PKT_HEADER_SIZE;
+      pktSize = pktHeader->len - IPV6_PKT_HEADER_SIZE;
+      break;
+    default:
+      printf("ip type error %x\n", ip_type);
+      break;
+    }
+ 
     double time = getNowTimeSec();
     // printf("Real time: %lf\n",time);
     callback(packet, pktSize, time);
