@@ -21,7 +21,7 @@ class HesaiLidarClient
 public:
   HesaiLidarClient(ros::NodeHandle node, ros::NodeHandle nh)
   {
-    lidarPublisher = node.advertise<livox_ros_driver::CustomMsg>("lidar", 10);
+    lidarPublisher = node.advertise<livox_ros_driver::CustomMsg>("/livox/lidar", 10);
     packetPublisher = node.advertise<hesai_lidar::PandarScan>("pandar_packets",10);
 
     string serverIp;
@@ -185,8 +185,16 @@ public:
       // std::cout << "---------------------------" << std::endl;
       lidarPublisher.publish(output);
       // printf("timebase:%f ,timestamp: %f, dt:%f, point size: %d, width: %d.\n",output.timebase,timestamp,d_timestamp,input_point_size,cld->width);
-      printf("%ld : dt=%.1f,width=%06d, -> ptsrate=%.1f[kpts/s], \n",output.timebase,d_timestamp,cld->width,cld->width/1000.0/d_timestamp);
+      if(publish_count%10 == 0)
+      {
+        printf("%ld : dt=%.1f,width=%06d, -> ptsrate=%.1f[kpts/s], \n",output.timebase,d_timestamp,cld->width,cld->width/1000.0/d_timestamp);
+      }
     }
+
+    if(m_sPublishType == "both" || m_sPublishType == "raw"){
+      packetPublisher.publish(scan);
+    }
+
   }
 
   void gpsCallback(int timestamp) {

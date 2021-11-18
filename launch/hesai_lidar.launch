@@ -13,7 +13,7 @@
 	<arg name="timestamp_type" default=""/>
 	<arg name="data_type" default=""/>
 	<!-- <arg name="namespace" default="hesai"/> -->
-	<arg name="namespace" default="livox"/>
+	<arg name="namespace" default=""/>
 	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/Pandar40P.csv"/>
 	<!-- <arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/Pandar64.csv"/> -->
 	<arg name="multicast_ip"  default=""/>

@@ -146,7 +146,3 @@ install(DIRECTORY launch/
 install(DIRECTORY config/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
 )
-
-install(FILES 
-     nodelets.xml DESTINATION  ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)

@@ -1,0 +1,24 @@
+
+<launch>
+    <arg name="arg_lidar_type" default=""/>
+    <arg name="arg_lidar_correction_file" default=""/>
+    <arg name="arg_publish_type" default="points"/>
+	<node pkg="nodelet" type="nodelet" name="hesai_lidar"  args="load pandar_pointcloud/CloudNodelet sensor_manager" output="screen">
+		<param name="pcap_file" type="string" value=""/>
+		<param name="server_ip" type="string" value="192.168.1.201"/>
+		<param name="lidar_recv_port"  type="int" value="2368"/>
+		<param name="gps_port"  type="int" value="10110"/>
+		<param name="start_angle"  type="double" value="0"/>
+		<param name="lidar_type"  type="string" value="$(arg arg_lidar_type)"/>
+		<param name="frame_id"  type="string" value="hesai"/>
+		<param name="pcldata_type"  type="int" value="90"/>
+		<param name="publish_type"  type="string" value="$(arg arg_publish_type)"/>
+		<param name="timestamp_type"  type="string" value=""/>
+		<param name="data_type"  type="string" value=""/>
+		<param name="lidar_correction_file"  type="string" value="$(arg arg_lidar_correction_file)"/>
+		<param name="multicast_ip"  type="string" value=""/>
+		<param name="coordinate_correction_flag"  type="bool" value="false"/>
+		<param name="fixed_frame"  type="string" value=""/>
+		<param name="target_frame"  type="string" value=""/>
+	</node>
+</launch>

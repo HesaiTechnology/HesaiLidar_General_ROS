@@ -1,0 +1,8 @@
+<launch>
+    <arg name="arg_publish_type_usr" default="points"/>
+    <include file="$(find hesai_lidar)/launch/nodelet_hesai.launch"> 
+        <arg name="arg_lidar_type" value="PandarXTM"/>
+        <arg name="arg_lidar_correction_file" value="$(find hesai_lidar)/config/PandarXTM.csv"/>
+        <arg name="arg_publish_type" value="$(arg arg_publish_type_usr)"/>
+    </include>
+</launch>

@@ -18,7 +18,7 @@
 	<arg name="coordinate_correction_flag"  default="false"/>
 	<arg name="fixed_frame"  default=""/>
 	<arg name="target_frame"  default=""/> 
-	<arg name="manager" default="pandar_nodelet_manager" />
+	<arg name="manager" default="lidar_manager" />
 	 <!-- ## start nodelet manager -->
 	<!-- <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" /> -->
     <node pkg="nodelet" type="nodelet" name="$(arg manager)" ns="$(arg namespace)" args="manager" output="screen" />
