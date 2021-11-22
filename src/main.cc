@@ -113,7 +113,7 @@ public:
    
     if (m_sPublishType == "both" || m_sPublishType == "points")
     {
-      pcl_conversions::toPCL(ros::Time(timestamp), cld->header.stamp);
+      // pcl_conversions::toPCL(ros::Time(timestamp), cld->header.stamp); //nanikore?
       livox_ros_driver::CustomMsg output;
       int input_point_size = cld->width;
       output.points.reserve(input_point_size+1); // [input_point_size]要素(以上)の領域を事前に確保しておく
@@ -153,6 +153,7 @@ public:
       pre_timebase_double = timebase_double;
       pre_timebase_uint64 = timebase_uint64;
       
+      output.header.stamp.sec  = pre_timebase_uint64 / 1e9;
 
       for (int i = 0; i < input_point_size; i++)
       {
