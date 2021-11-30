@@ -18,7 +18,7 @@ Developed based on [HesaiLidar_General_SDK](https://github.com/HesaiTechnology/H
  
 **Library Dependencies: libpcap-dev + libpcl-dev + libboost-dev**  
 ```
-$sudo apt install libpcl-dev libpcap-dev  libboost-dev
+$ sudo apt install libpcl-dev libpcap-dev  libboost-dev
 ```
 
 ## Download and Build
@@ -37,6 +37,15 @@ $ colcon build --symlink-install
 ```
 
 ## Configuration 
+
+Use a defined IP address and port to connect to the Lidar.
+
+```.bash
+sudo ifconfig eno2 192.168.1.100 # (replace eno2 with the local Ethernet port name)
+```
+or simply use the default IP address and port defined by your system. But change the `server_ip` parameter in the `hesai_lidar_launch.py` file.
+
+
 ```
  $ gedit install/hesai_lidar/share/hesai_lidar/launch/hesai_lidar_launch.py
 ```
