@@ -14,7 +14,7 @@ Developed based on [HesaiLidar_General_SDK](https://github.com/HesaiTechnology/H
 
 　Recommended:  
 　Ubuntu - with ROS2 galactic desktop-full installed or  
-  use the `rosdep` tool to install all the dependencies
+  use the `rosdep` tool and ROS2 galactic base to install all the dependencies
 
 ### Install ROS2 dependencies
 
