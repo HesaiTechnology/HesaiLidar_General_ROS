@@ -1,10 +1,16 @@
 cmake_minimum_required(VERSION 3.5)
 project(hesai_lidar)
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
+
+if(NOT WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fPIC")
+endif()
+set( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -O3 -fPIC" )
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -14,6 +20,9 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED) 
 find_package(rosidl_default_generators REQUIRED)
@@ -99,6 +108,7 @@ ament_target_dependencies(hesai_lidar_node
   "sensor_msgs"
   "std_msgs"
   "tf2_geometry_msgs"
+  "tf2_ros"
 )
 
 target_include_directories(hesai_lidar_node PRIVATE
@@ -106,7 +116,11 @@ target_include_directories(hesai_lidar_node PRIVATE
     src/HesaiLidar_General_SDK/src/PandarGeneralRaw/include
     ${PCL_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
-)
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  
+    
 
 target_link_libraries(hesai_lidar_node 
     ${PCL_IO_LIBRARIES}
@@ -115,10 +129,17 @@ target_link_libraries(hesai_lidar_node
 )
 
 rosidl_target_interfaces(hesai_lidar_node  ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
+install(TARGETS PandarGeneralSDK
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
 install(TARGETS hesai_lidar_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME})
 
+
+ament_export_include_directories(include)
 ament_package()
