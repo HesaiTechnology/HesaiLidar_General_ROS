@@ -53,9 +53,9 @@ sudo apt install libpcl-dev libpcap-dev  libboost-dev
 
 **Download code**  
 ```
-$ mkdir -p rosworkspace/src
-$ cd rosworkspace/src
-$ git clone https://github.com/HesaiTechnology/HesaiLidar_General_ROS.git --recursive
+mkdir -p rosworkspace/src
+cd rosworkspace/src
+git clone --branch ros2-galactic https://github.com/HesaiTechnology/HesaiLidar_General_ROS.git --recursive
 ```
 **Build**
 ```
