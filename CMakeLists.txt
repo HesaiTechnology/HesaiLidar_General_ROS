@@ -136,7 +136,7 @@ install(TARGETS PandarGeneralSDK
 
 install(TARGETS hesai_lidar_node
   DESTINATION lib/${PROJECT_NAME})
-
+  
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME})
 
