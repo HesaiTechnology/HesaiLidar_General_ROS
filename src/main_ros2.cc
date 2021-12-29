@@ -53,7 +53,7 @@ private:
   {
     if(m_sPublishType == "both" || m_sPublishType == "points"){
       rclcpp::Time now = this->now();
-      pcl_conversions::toPCL(rclcpp::Time(timestamp), cld->header.stamp);
+      pcl_conversions::toPCL(now, cld->header.stamp);
       sensor_msgs::msg::PointCloud2 output;
       pcl::toROSMsg(*cld, output);
       lidarPublisher->publish(output);
