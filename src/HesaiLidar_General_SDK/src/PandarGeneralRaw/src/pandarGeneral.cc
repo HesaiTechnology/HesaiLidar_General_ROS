@@ -99,6 +99,7 @@ bool PandarGeneral::GetCorrectionFileFlag(){
   if (internal_) {
     return internal_->GetCorrectionFileFlag();
   }
+  return false;
 }
 
 void PandarGeneral::SetCorrectionFileFlag(bool flag){

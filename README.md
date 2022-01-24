@@ -12,31 +12,68 @@ Developed based on [HesaiLidar_General_SDK](https://github.com/HesaiTechnology/H
 ## Environment and Dependencies
 **System environment requirement: Linux + ROS2**  
 
-　Recommanded:  
-　Ubuntu - with ROS2 dashing desktop-full installed or  
-  Check resources on http://ros.org for installation guide 
- 
+　Recommended:  
+　Ubuntu - with ROS2 galactic desktop-full installed or  
+  use the `rosdep` tool and ROS2 galactic base to install all the dependencies
+
+### Install ROS2 dependencies
+
+#### Install and configure rosdep
+
+```.bash 
+# install rosdep ROS2 Galactic
+sudo apt-get install python3-rosdep
+```
+or on non ubuntu platforms
+
+```.bash 
+# install rosdep ROS2 Galactic
+sudo pip3 install -U rosdep  
+```
+
+**Configure:**
+```.bash
+sudo rosdep init
+rosdep update
+```
+
+**Install ROS dependencies:**
+```.bash
+# Go to the top of your workspace
+rosdep install --from-paths src/HesaiLidar_General_ROS --ignore-src -r -y
+```
+
 **Library Dependencies: libpcap-dev + libpcl-dev + libboost-dev**  
+```.bash
+sudo apt install libpcl-dev libpcap-dev  libboost-dev
 ```
-$sudo apt install libpcl-dev libpcap-dev  libboost-dev
-```
+
 
 ## Download and Build
 
 **Download code**  
 ```
-$ mkdir -p rosworkspace/src
-$ cd rosworkspace/src
-$ git clone https://github.com/HesaiTechnology/HesaiLidar_General_ROS.git --recursive
+mkdir -p rosworkspace/src
+cd rosworkspace/src
+git clone --branch ros2-galactic https://github.com/HesaiTechnology/HesaiLidar_General_ROS.git --recursive
 ```
 **Build**
 ```
 $ cd ..
-$ source /opt/ros/dashing/setup.bash
+$ source /opt/ros/galactic/setup.bash
 $ colcon build --symlink-install
 ```
 
 ## Configuration 
+
+Use a defined IP address and port to connect to the Lidar.
+
+```.bash
+sudo ifconfig eno2 192.168.1.100 # (replace eno2 with the local Ethernet port name)
+```
+or simply use the default IP address and port defined by your system. But change the `server_ip` parameter in the `hesai_lidar_launch.py` file.
+
+
 ```
  $ gedit install/hesai_lidar/share/hesai_lidar/launch/hesai_lidar_launch.py
 ```

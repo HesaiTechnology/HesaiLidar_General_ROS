@@ -688,6 +688,7 @@ int PandarGeneral_Internal::Start() {
   } else {
     pcap_reader_->start(boost::bind(&PandarGeneral_Internal::FillPacket, this, _1, _2, _3));
   }
+  return 0;
 }
 
 void PandarGeneral_Internal::Stop() {
