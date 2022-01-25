@@ -117,7 +117,10 @@ target_link_libraries(hesai_lidar_node
 rosidl_target_interfaces(hesai_lidar_node  ${PROJECT_NAME} "rosidl_typesupport_cpp")
 install(TARGETS hesai_lidar_node
   DESTINATION lib/${PROJECT_NAME})
-
+  
+install(TARGETS PandarGeneralSDK PandarGeneral
+  DESTINATION lib)
+  
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME})
 
