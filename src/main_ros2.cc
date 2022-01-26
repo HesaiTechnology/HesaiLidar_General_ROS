@@ -163,7 +163,7 @@ private:
         hsdk->Start();
         // hsdk->LoadLidarCorrectionFile("...");  // parameter is stream in lidarCorrectionFile
     } else {
-        printf("create sdk fail\n");
+        std::cout << "create sdk fail" << std::endl;
     }
   }
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr lidarPublisher;
