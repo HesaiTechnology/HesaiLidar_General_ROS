@@ -26,7 +26,7 @@ def generate_launch_description():
                 {"multicast_ip"  : "''"},
                 {"coordinate_correction_flag"  : False},
                 {"fixed_frame"  : "''"},
-                {"target_frame_frame"  : "''"}
+                {"target_frame"  : "''"}
             ]
         )
     ])
