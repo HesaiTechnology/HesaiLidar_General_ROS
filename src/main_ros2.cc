@@ -51,9 +51,11 @@ private:
   void lidarCallback(boost::shared_ptr<PPointCloud> cld, double timestamp, hesai_lidar::msg::PandarScan::SharedPtr scan) // the timestamp from first point cloud of cld
   {
     if(m_sPublishType == "both" || m_sPublishType == "points"){
-      pcl_conversions::toPCL(rclcpp::Time(timestamp), cld->header.stamp);
       sensor_msgs::msg::PointCloud2 output;
       pcl::toROSMsg(*cld, output);
+      uint64_t sec = std::floor(timestamp);
+      output.header.stamp.sec = static_cast<uint64_t>(sec);
+      output.header.stamp.nanosec = std::round((timestamp - sec) * 1e9);
       lidarPublisher->publish(output);
 #ifdef PRINT_FLAG
         std::cout.setf(ios::fixed);
