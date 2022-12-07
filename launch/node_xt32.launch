@@ -1,0 +1,6 @@
+<launch>
+    <include file="$(find hesai_lidar)/launch/node_hesai.launch"> 
+        <arg name="lidar_type" default="PandarXT-32"/>
+        <arg name="lidar_correction_file" default="$(find hesai_lidar)/config/PandarXT-32.csv"/>
+    </include>
+</launch>
