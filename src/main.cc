@@ -202,8 +202,6 @@ public:
     #ifdef PRINT_FLAG
        printf("gps: %d\n", timestamp);
     #endif      
-    printf("gps: %d\n", timestamp);
-
   }
 
   void scanCallback(const hesai_lidar::PandarScanPtr scan)
