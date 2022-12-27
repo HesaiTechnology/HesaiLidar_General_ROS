@@ -37,7 +37,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <Eigen/Dense>
-
+#define MAX_ITERATOR_DIFF (400)
 #define SOB_ANGLE_SIZE (4)
 #define RAW_MEASURE_SIZE (3)
 #define LASER_COUNT (40)
@@ -173,6 +173,7 @@ struct Pandar40PPacket_s {
   uint32_t usec;
   int echo;
   double timestamp_point;
+  float spin_speed;
 };
 typedef struct Pandar40PPacket_s Pandar40PPacket;
 
@@ -213,6 +214,7 @@ typedef struct HS_LIDAR_L64_Packet_s{
     unsigned int echo;
     unsigned char addtime[6];
     double timestamp_point;
+    float spin_speed;
 } HS_LIDAR_L64_Packet;
 /***************Pandar64****************************/
 
@@ -253,6 +255,7 @@ typedef struct HS_LIDAR_L20_Packet_s{
     unsigned int echo;
     unsigned char addtime[6];
     double timestamp_point;
+    float spin_speed;
 } HS_LIDAR_L20_Packet;
 /************Pandar20A/B*******************************/
 
@@ -290,6 +293,14 @@ typedef struct PacketsBuffer_s {
       return 1;
     } 
     m_iterPush++;
+
+    if(((m_iterPush - m_iterCalc) > MAX_ITERATOR_DIFF) ||
+    ((m_iterPush < m_iterCalc) && (m_iterCalc - m_iterPush) < m_buffers.size() - MAX_ITERATOR_DIFF)){
+
+      while((((m_iterPush - m_iterCalc) > MAX_ITERATOR_DIFF) ||
+      ((m_iterPush < m_iterCalc) && (m_iterCalc - m_iterPush) < m_buffers.size() - MAX_ITERATOR_DIFF)))
+        usleep(1000);
+    }
 
     if (m_iterPush == m_iterCalc) {
       printf("buffer don't have space!,%d\n", m_iterPush - m_buffers.begin());
@@ -406,6 +417,7 @@ class PandarGeneral_Internal {
   bool computeTransformToTarget(const ros::Time &scan_time);
   bool computeTransformToFixed(const ros::Time &packet_time) ;
   void transformPoint(float& x, float& y, float& z);
+  float GetFiretimeOffset(float speed, float deltT);  
   pthread_mutex_t lidar_lock_;
   sem_t lidar_sem_;
   boost::thread *lidar_recv_thr_;
@@ -492,6 +504,9 @@ class PandarGeneral_Internal {
   std::string m_sFixedFrame;
   std::string m_sTargetFrame;
   uint16_t m_iAzimuthRange;
+  int m_iPointCloudIndex;
+  std::vector<std::vector<PPoint> > m_vPointCloudList;
+  std::vector<PPoint> m_vPointCloud;
 
 };
 

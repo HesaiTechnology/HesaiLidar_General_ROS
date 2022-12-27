@@ -21,14 +21,14 @@
 #include <unistd.h>
 #include <string>
 
-#define VERSION "PandarGeneralROS_1.1.14"
+#define VERSION "PandarGeneralROS_1.1.15"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void printVersion() {
     printf("       ///////////////////////////////////////////////////////////////\n"
-           "       //     PandarGeneralSDK version: %s      //\n" 
+           "       //     PandarGeneralROS version: %s      //\n" 
            "       ///////////////////////////////////////////////////////////////\n",VERSION);
 }
 
