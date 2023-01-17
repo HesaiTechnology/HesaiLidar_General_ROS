@@ -140,7 +140,7 @@ static int TcpCommand_buildHeader(char* buffer, TC_Command* cmd) {
 static PTC_ErrCode tcpCommandClient_SendCmd(TcpCommandClient* client,
                                             TC_Command* cmd) {
   printf("tcpCommandClient_SendCmd\n");
-  if (!client && !cmd) {
+  if (!client || !cmd) {
     printf("Bad Parameter\n");
     return PTC_ERROR_BAD_PARAMETER;
   }
