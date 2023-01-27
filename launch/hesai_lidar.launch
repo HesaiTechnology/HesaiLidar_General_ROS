@@ -10,6 +10,7 @@
 	<arg name="frame_id" default=""/>
 	<arg name="pcldata_type" default="0"/>
 	<arg name="publish_type" default="points"/>
+	<!--"timestamp_type" represents the type of reference time published to ROS ("" or "realtime")-->
 	<arg name="timestamp_type" default=""/>
 	<arg name="data_type" default=""/>
 	<arg name="namespace" default="hesai"/>

@@ -74,11 +74,13 @@ Data source will be from pcap file once "pcap_file" not empty
 |---------|---------------|
 |pcap_file ||
 |publish_type |points|　
+|timestamp_type |realtime|
 |data_type |rosbag|
 
 Data source will be from rosbag when "pcap_file" is set to empty and "data_type" is set to "rosbag"
 Make sure the parameter "publish_type" is set to "points"
 Make sure the parameter "namespace" in file hesai_lidar.launch is same with the namespace in rosbag
+Make sure the parameter "timestamp_type" is set to "realtime" for the type of reference time published to ROS  
 
 ## Run as independent node
 
