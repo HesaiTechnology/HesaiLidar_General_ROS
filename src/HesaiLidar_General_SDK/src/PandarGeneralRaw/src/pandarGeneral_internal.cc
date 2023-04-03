@@ -775,8 +775,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
       usleep(1000);
       continue;
     }
-    PandarPacket packet = *(m_PacketsBuffer.getIterCalc());
-    m_PacketsBuffer.moveIterCalc();
+    const PandarPacket& packet = *(m_PacketsBuffer.getIterCalc());
     rawpacket.stamp.sec = floor(packet.stamp);
     rawpacket.stamp.nsec = (packet.stamp - floor(packet.stamp))*1000000000;
     rawpacket.size = packet.size;
@@ -1005,6 +1004,7 @@ void PandarGeneral_Internal::ProcessLiarPacket() {
     } else {
       continue;
     }
+    m_PacketsBuffer.moveIterCalc();
 
     outMsg->header.frame_id = m_sFrameId;
     outMsg->height = 1;
