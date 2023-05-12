@@ -19,6 +19,7 @@
 	<arg name="manager" default="pandar_nodelet_manager" />
 	<arg name="fixed_frame"  default=""/>
 	<arg name="target_frame"  default=""/>
+	<arg name="publish_topic"  default="pandar_16"/>
 	 <!-- start nodelet manager -->
 	<!-- <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" /> -->
     <node pkg="nodelet" type="nodelet" name="$(arg manager)" ns="$(arg namespace)" args="manager" output="screen" />
@@ -39,5 +40,6 @@
 		<param name="coordinate_correction_flag"  type="bool" value="$(arg coordinate_correction_flag)"/>
 		<param name="fixed_frame"  type="string" value="$(arg fixed_frame)"/>
 		<param name="target_frame"  type="string" value="$(arg target_frame)"/>
+		<remap from="pandar" to="$(arg publish_topic)" />
 	</node>
 </launch>
