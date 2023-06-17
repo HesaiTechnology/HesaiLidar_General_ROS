@@ -26,6 +26,7 @@
 #include <string>
 
 #include <boost/function.hpp>
+#include <boost/bind.hpp>
 
 #include "pandarGeneral/point_types.h"
 #include "src/input.h"
@@ -35,6 +36,7 @@
 #include <hesai_lidar/msg/pandar_scan.hpp>
 #include <hesai_lidar/msg/pandar_packet.hpp>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.h>
 // #include <geometry_msgs/TransformStamped.h>
 #include <Eigen/Dense>
 
