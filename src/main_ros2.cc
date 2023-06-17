@@ -2,10 +2,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <hesai_lidar/msg/pandar_scan.hpp>
 #include <hesai_lidar/msg/pandar_packet.hpp>
-#include <image_transport/image_transport.h>
+#include <image_transport/image_transport.hpp>
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/msg/point_cloud2.hpp>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include "pandarGeneral_sdk/pandarGeneral_sdk.h"
 #include <fstream>
 #include <memory>
@@ -13,6 +13,7 @@
 #include <string>
 #include <functional>
 #include "std_msgs/msg/string.hpp"
+#include "boost/bind.hpp"
 // #define PRINT_FLAG 
 
 using namespace std;
@@ -40,7 +41,7 @@ public:
     this->declare_parameter<std::string>("target_frame", "");
     this->declare_parameter<std::string>("fixed_frame", "");
     rclcpp::QoS qos(rclcpp::KeepLast(7));
-    lidarPublisher = this->create_publisher<sensor_msgs::msg::PointCloud2>("pandar");
+    lidarPublisher = this->create_publisher<sensor_msgs::msg::PointCloud2>("pandar", qos);
     packetPublisher = this->create_publisher<hesai_lidar::msg::PandarScan>("pandar_packets", qos);
     this->timer_callback();
   }
