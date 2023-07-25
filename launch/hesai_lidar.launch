@@ -10,10 +10,10 @@
 	<arg name="frame_id" default=""/>
 	<arg name="pcldata_type" default="0"/>
 	<arg name="publish_type" default="points"/>
-	<arg name="timestamp_type" default=""/>
+	<arg name="timestamp_type" default="realtime"/>
 	<arg name="data_type" default=""/>
 	<arg name="namespace" default="hesai"/>
-	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/Pandar64.csv"/>
+	<arg name="lidar_correction_file"  default="$(find hesai_lidar)/config/PandarXT-16.csv"/>
 	<arg name="multicast_ip"  default=""/>
 	<arg name="coordinate_correction_flag"  default="false"/>
 	<arg name="fixed_frame"  default=""/>
