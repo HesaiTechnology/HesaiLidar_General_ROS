@@ -80,6 +80,14 @@ Data source will be from rosbag when "pcap_file" is set to empty and "data_type"
 Make sure the parameter "publish_type" is set to "points"
 Make sure the parameter "namespace" in file hesai_lidar.launch is same with the namespace in rosbag
 
+## Important user options 
+
+Set "timestamp_type" to "realtime" inorder to recive the timestep based based on the driver computer. The default value would give the timestamp based on a previous fixed timestamp on the sensor. 
+
+```
+<arg name="timestamp_type" default="realtime"/>
+```
+
 ## Run as independent node
 
 1. Make sure current path in the `rosworkspace` directory
