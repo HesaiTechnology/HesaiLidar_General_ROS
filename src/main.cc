@@ -136,7 +136,18 @@ public:
         pre_timebase_uint64 = timebase_uint64;
       }
 
-      timebase_double = timestamp * 1e9;
+      double min_timestamp = cld->points[0].timestamp*1e9;
+      for (int i = 0; i < input_point_size; i++)
+      {
+        double timestamp_i = cld->points[i].timestamp*1e9;
+        if(timestamp_i < min_timestamp)
+        {
+          min_timestamp = timestamp_i;
+        } 
+      }      
+
+      // timebase_double = timestamp * 1e9;
+      timebase_double = min_timestamp;
       timebase_uint64 = (uint64_t) timebase_double;
       output.timebase = timebase_uint64;
 
