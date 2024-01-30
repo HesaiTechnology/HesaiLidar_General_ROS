@@ -683,7 +683,7 @@ void PandarGeneral_Internal::Start() {
   enable_lidar_recv_thr_ = true;
   enable_lidar_process_thr_ = true;
   lidar_process_thr_ = new boost::thread(
-      boost::bind(&PandarGeneral_Internal::ProcessLiarPacket, this));
+      boost::bind(&PandarGeneral_Internal::ProcessLidarPacket, this));
 
   if (connect_lidar_) {
     lidar_recv_thr_ =
@@ -758,7 +758,7 @@ void PandarGeneral_Internal::FillPacket(const uint8_t *buf, const int len, doubl
   }
 }
 
-void PandarGeneral_Internal::ProcessLiarPacket() {
+void PandarGeneral_Internal::ProcessLidarPacket() {
   // LOG_FUNC();
   double lastTimestamp = 0.0f;
   struct timespec ts;

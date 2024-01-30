@@ -387,7 +387,7 @@ class PandarGeneral_Internal {
   void Init();
   void RecvTask();
   void ProcessGps(const PandarGPS &gpsMsg);
-  void ProcessLiarPacket();
+  void ProcessLidarPacket();
   void PushLiDARData(PandarPacket packet);
   int ParseRawData(Pandar40PPacket *packet, const uint8_t *buf, const int len);
   int ParseL64Data(HS_LIDAR_L64_Packet *packet, const uint8_t *recvbuf, const int len);
